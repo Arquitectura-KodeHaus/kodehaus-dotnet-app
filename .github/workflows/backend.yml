@@ -1,0 +1,147 @@
+name: Backend CI/CD - GCP
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION }}
+  AR_REPO: ${{ vars.ARTIFACT_REGISTRY_REPO || 'kodehaus-backend' }}
+  SERVICE: kodehaus-backend-service
+  IMAGE_NAME: kodehaus-backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Auth to GCP (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker to Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+        working-directory: .
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build application
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Create Dockerfile if not exists
+        run: |
+          if [ ! -f Dockerfile ]; then
+            cat > Dockerfile << 'EOF'
+          FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+          WORKDIR /app
+          EXPOSE 8080
+
+          FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+          WORKDIR /src
+          COPY ["backend.csproj", "./"]
+          RUN dotnet restore "backend.csproj"
+          COPY . .
+          RUN dotnet build "backend.csproj" -c Release -o /app/build
+
+          FROM build AS publish
+          RUN dotnet publish "backend.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+          FROM base AS final
+          WORKDIR /app
+          COPY --from=publish /app/publish .
+          ENTRYPOINT ["dotnet", "backend.dll"]
+          EOF
+          fi
+
+      - name: Build & Push image
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
+          
+          echo "🔨 Building .NET backend image..."
+          docker build -t "$IMAGE_URI" .
+          
+          echo "📦 Pushing image..."
+          docker push "$IMAGE_URI"
+          
+          DIGEST=$(gcloud artifacts docker images describe "$IMAGE_URI" --format='value(image_summary.digest)')
+          echo "IMAGE_URI_DIGEST=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}@${DIGEST}" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        working-directory: .
+        run: |
+          gcloud run deploy "${{ env.SERVICE }}" \
+            --region "${{ env.REGION }}" \
+            --image "${IMAGE_URI_DIGEST}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --memory 512Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 10 \
+            --timeout 300 \
+            --set-env-vars "ASPNETCORE_ENVIRONMENT=Production,ASPNETCORE_URLS=http://+:8080" \
+            --labels "app=kodehaus-backend,env=production,tier=backend"
+
+      - name: Verify deployment
+        working-directory: .
+        run: |
+          SERVICE_URL=$(gcloud run services describe "${{ env.SERVICE }}" \
+            --region "${{ env.REGION }}" \
+            --format='value(status.url)')
+          
+          echo "🌐 Service URL: ${SERVICE_URL}"
+          
+          # Esperar que esté listo
+          sleep 15
+          
+          # Health check
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}/api/api")
+          
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            echo "✅ API health check passed!"
+          else
+            echo "⚠️  API returned HTTP ${HTTP_CODE}"
+          fi
+
+      - name: Display deployment info
+        working-directory: .
+        run: |
+          SERVICE_URL=$(gcloud run services describe "${{ env.SERVICE }}" \
+            --region "${{ env.REGION }}" \
+            --format='value(status.url)')
+          
+          echo ""
+          echo "🎉 =================================="
+          echo "   Backend Deployed Successfully!"
+          echo "   =================================="
+          echo ""
+          echo "🌐 Backend URL: ${SERVICE_URL}"
+          echo "📦 Image: ${IMAGE_URI_DIGEST}"
+          echo "🔗 API Endpoint: ${SERVICE_URL}/api/api"
+          echo ""
