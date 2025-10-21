@@ -318,10 +318,4 @@ Las contribuciones son bienvenidas. Por favor:
 
 ---
 
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
----
-
 </div>
