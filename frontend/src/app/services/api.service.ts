@@ -12,7 +12,7 @@ export interface SampleModel {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:5000/api';
+  private baseUrl = 'https://kodehaus-backend-service-616328447495.us-central1.run.app/api';
 
   constructor(private http: HttpClient) {}
 
