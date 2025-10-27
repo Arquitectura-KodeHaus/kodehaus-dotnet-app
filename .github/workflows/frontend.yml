@@ -63,7 +63,7 @@ jobs:
           # Crear el directorio si no existe
           RUN mkdir -p src/environments
           RUN echo "export const environment = { production: true, apiUrl: '${BACKEND_URL}' };" > src/environments/environment.prod.ts
-          RUN npm run build
+          RUN npm run build -- --configuration production --no-build-optimizer || npm run build
 
           # Production stage
           FROM nginx:alpine
