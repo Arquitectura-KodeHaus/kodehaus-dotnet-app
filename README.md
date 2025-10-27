@@ -86,9 +86,10 @@ cd backend
 dotnet run
 ```
 
-El backend estará disponible en:
+El backend estará disponible en local:
 - 🌐 **HTTP**: `http://localhost:5000`
-- 📚 **Swagger**: `http://localhost:5000/swagger` (en modo desarrollo)
+OJO el repo usa la url de gcp en ves de localhost, cuando terminen su parte dejen la url de gcp:
+- 🌐 **URL de GCP**: `https://kodehaus-backend-service-616328447495.us-central1.run.app`
 
 ### Ejecutar el Frontend
 
@@ -99,8 +100,10 @@ cd frontend
 npm start
 ```
 
-El frontend estará disponible en:
+El frontend estará disponible en en local:
 - 🌐 **URL**: `http://localhost:4200`
+OJO el repo usa la url de gcp en ves de localhost, cuando terminen su parte dejen la url de gcp:
+- 🌐 **HTTP**: `https://kodehaus-frontend-dotnet-616328447495.us-central1.run.app`
 
 ---
 
