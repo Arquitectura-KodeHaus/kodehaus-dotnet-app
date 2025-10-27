@@ -10,8 +10,8 @@ on:
 env:
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   REGION: ${{ vars.GCP_REGION }}
-  AR_REPO: ${{ vars.ARTIFACT_REGISTRY_REPO || 'kodehaus-frontend' }}
-  SERVICE: kodehaus-frontend-service
+  AR_REPO: ${{ vars.ARTIFACT_REGISTRY_REPO || 'kodehaus-frontend-' }}
+  SERVICE: kodehaus-frontend-dotnet
   IMAGE_NAME: kodehaus-frontend
 
 jobs:
@@ -110,7 +110,7 @@ jobs:
       - name: Build & Push Docker image
         env:
           IMAGE_TAG: ${{ github.sha }}
-          BACKEND_URL: ${{ vars.BACKEND_URL }}
+          BACKEND_URL: ${{ vars.BACKEND_URL_DOTNET }}
         run: |
           IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
           
@@ -191,6 +191,6 @@ jobs:
           echo "   =================================="
           echo ""
           echo "🌐 Frontend URL: ${SERVICE_URL}"
-          echo "🔗 Backend URL: ${{ vars.BACKEND_URL }}"
+          echo "🔗 Backend URL: ${{ vars.BACKEND_URL_DOTNET }}"
           echo "📦 Image: ${IMAGE_URI_DIGEST}"
           echo ""
