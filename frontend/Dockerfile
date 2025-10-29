@@ -17,7 +17,7 @@ RUN mkdir -p src/environments && \
     cat > src/environments/environment.prod.ts <<EOF
 export const environment = {
   production: true,
-  apiUrl: '${BACKEND_URL}'
+  apiUrl: '${BACKEND_URL}/api'
 };
 EOF
 
