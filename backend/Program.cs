@@ -19,7 +19,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddScoped<ILocalService, LocalService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
-builder.Services.AddScoped<IEmpleadoService, EmpleadoService>();
 builder.Services.AddScoped<IDataService, DataService>();
 
 // Database
@@ -59,7 +58,7 @@ else
 
 var app = builder.Build();
 
-// ✅ NUEVO: Aplicar migraciones automáticamente al iniciar
+// ✅ Aplicar migraciones automáticamente al iniciar
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -78,7 +77,6 @@ using (var scope = app.Services.CreateScope())
         {
             Console.WriteLine($"   Inner Exception: {ex.InnerException.Message}");
         }
-        // No lanzar excepción para permitir que la app inicie (útil para debugging)
     }
 }
 
