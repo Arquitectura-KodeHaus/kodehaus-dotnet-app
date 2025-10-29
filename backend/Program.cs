@@ -5,42 +5,73 @@ using backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-var conecctionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// CRITICAL: Configure Kestrel to listen on Cloud Run PORT
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(int.Parse(port));
+});
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Register services
 builder.Services.AddScoped<ILocalService, LocalService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
-builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(conecctionString));
+builder.Services.AddScoped<IDataService, DataService>();
+
+// Database
+builder.Services.AddDbContext<AppDbContext>(options => 
+    options.UseNpgsql(connectionString));
+
+// Controllers and API
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
+// CORS Configuration
+if (builder.Environment.IsProduction())
 {
-    options.AddPolicy("AllowAngular",
-        policy =>
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
         {
-            policy.WithOrigins("http://localhost:4200",
-                "https://kodehaus-frontend-dotnet-616328447495.us-central1.run.app")
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
-});
-
-builder.Services.AddScoped<IDataService, DataService>();
+    });
+}
+else
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+}
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger in all environments for testing
+app.UseSwagger();
+app.UseSwaggerUI();
 
-// app.UseHttpsRedirection(); // Comentado para desarrollo
+// DO NOT use HTTPS redirection in Cloud Run (handled by load balancer)
+// app.UseHttpsRedirection();
 
-app.UseCors("AllowAngular");
+// CRITICAL: CORS must be before UseAuthorization
+app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
+
+Console.WriteLine($"Starting application on port {port}");
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"Connection String: {connectionString?.Substring(0, Math.Min(50, connectionString?.Length ?? 0))}...");
 
 app.Run();
