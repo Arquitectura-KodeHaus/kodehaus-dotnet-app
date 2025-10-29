@@ -12,9 +12,14 @@ COPY . .
 
 ENV NODE_OPTIONS=--max_old_space_size=4096
 
-# ✅ USAR COMILLAS DOBLES para que la variable se expanda
+# Generar environment.prod.ts dinámicamente
 RUN mkdir -p src/environments && \
-    echo "export const environment = { production: true, apiUrl: \"$BACKEND_URL\" };" > src/environments/environment.prod.ts
+    cat > src/environments/environment.prod.ts <<EOF
+export const environment = {
+  production: true,
+  apiUrl: '${BACKEND_URL}'
+};
+EOF
 
 # Verificar el contenido (esto te ayudará a debuggear)
 RUN echo "=== Environment file content ===" && \
