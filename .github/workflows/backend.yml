@@ -58,6 +58,7 @@ jobs:
           FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
           WORKDIR /app
           EXPOSE 8080
+          ENV ASPNETCORE_URLS=http://+:8080
 
           FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
           WORKDIR /src
@@ -106,6 +107,8 @@ jobs:
             --max-instances 10 \
             --timeout 300 \
             --set-env-vars "ASPNETCORE_ENVIRONMENT=Production,ASPNETCORE_URLS=http://+:8080" \
+            --set-cloudsql-instances "${{ secrets.CLOUD_SQL_INSTANCE }}" \
+            --set-env-vars "ConnectionStrings__DefaultConnection=${{ secrets.DATABASE_URL }}" \
             --labels "app=kodehaus-backend,env=production,tier=backend"
 
       - name: Verify deployment
@@ -121,12 +124,14 @@ jobs:
           sleep 15
           
           # Health check
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}/api/api")
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}/api")
           
           if [ "$HTTP_CODE" -eq 200 ]; then
             echo "✅ API health check passed!"
           else
             echo "⚠️  API returned HTTP ${HTTP_CODE}"
+            echo "Trying to get response body..."
+            curl -s "${SERVICE_URL}/api" || true
           fi
 
       - name: Display deployment info
@@ -143,5 +148,6 @@ jobs:
           echo ""
           echo "🌐 Backend URL: ${SERVICE_URL}"
           echo "📦 Image: ${IMAGE_URI_DIGEST}"
-          echo "🔗 API Endpoint: ${SERVICE_URL}/api/api"
+          echo "🔗 API Endpoint: ${SERVICE_URL}/api"
+          echo "🔗 Swagger: ${SERVICE_URL}/swagger"
           echo ""
