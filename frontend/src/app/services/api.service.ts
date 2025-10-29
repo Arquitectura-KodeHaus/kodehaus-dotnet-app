@@ -1,8 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Local, Inventario, Venta, Empleado, VentaRequest } from '../models/local.model';
 import { environment } from '../../environments/environment';
+
+export interface SampleModel {
+  id: number;
+  name: string;
+  description: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -12,87 +17,67 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
-  // Locales endpoints
-  getLocales(): Observable<Local[]> {
-    return this.http.get<Local[]>(`${this.baseUrl}/locales`);
+  getSampleData(): Observable<SampleModel[]> {
+    return this.http.get<SampleModel[]>(`${this.baseUrl}/api`);
   }
 
-  getLocal(id: number): Observable<Local> {
-    return this.http.get<Local>(`${this.baseUrl}/locales/${id}`);
+  // Métodos para Locales
+  getLocales(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/locales`);
   }
 
-  crearLocal(local: Local): Observable<Local> {
-    return this.http.post<Local>(`${this.baseUrl}/locales`, local);
+  createLocal(local: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/locales`, local);
   }
 
-  actualizarLocal(id: number, local: Local): Observable<Local> {
-    return this.http.put<Local>(`${this.baseUrl}/locales/${id}`, local);
+  updateLocal(id: number, local: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/locales/${id}`, local);
   }
 
-  eliminarLocal(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/locales/${id}`);
+  deleteLocal(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/locales/${id}`);
   }
 
-  // Inventarios endpoints
-  getInventarios(): Observable<Inventario[]> {
-    return this.http.get<Inventario[]>(`${this.baseUrl}/inventarios`);
+  // Métodos para Inventarios
+  getInventarios(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/inventarios`);
   }
 
-  getInventario(id: number): Observable<Inventario> {
-    return this.http.get<Inventario>(`${this.baseUrl}/inventarios/${id}`);
+  createInventario(inventario: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/inventarios`, inventario);
   }
 
-  crearInventario(inventario: Inventario): Observable<Inventario> {
-    return this.http.post<Inventario>(`${this.baseUrl}/inventarios`, inventario);
+  updateInventario(id: number, inventario: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/inventarios/${id}`, inventario);
   }
 
-  actualizarInventario(id: number, inventario: Inventario): Observable<Inventario> {
-    return this.http.put<Inventario>(`${this.baseUrl}/inventarios/${id}`, inventario);
+  deleteInventario(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/inventarios/${id}`);
   }
 
-  eliminarInventario(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/inventarios/${id}`);
+  // Métodos para Ventas
+  getVentas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/ventas`);
   }
 
-  // Ventas endpoints
-  getVentas(): Observable<Venta[]> {
-    return this.http.get<Venta[]>(`${this.baseUrl}/ventas`);
+  createVenta(venta: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/ventas`, venta);
   }
 
-  getVenta(id: number): Observable<Venta> {
-    return this.http.get<Venta>(`${this.baseUrl}/ventas/${id}`);
+  // Métodos para Empleados
+  getEmpleados(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/empleados`);
   }
 
-  crearVenta(venta: VentaRequest): Observable<Venta> {
-    return this.http.post<Venta>(`${this.baseUrl}/ventas`, venta);
+  createEmpleado(empleado: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/empleados`, empleado);
   }
 
-  actualizarVenta(id: number, venta: Venta): Observable<Venta> {
-    return this.http.put<Venta>(`${this.baseUrl}/ventas/${id}`, venta);
+  updateEmpleado(id: number, empleado: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/empleados/${id}`, empleado);
   }
 
-  eliminarVenta(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/ventas/${id}`);
-  }
-
-  // Empleados endpoints
-  getEmpleados(): Observable<Empleado[]> {
-    return this.http.get<Empleado[]>(`${this.baseUrl}/empleados`);
-  }
-
-  getEmpleado(id: number): Observable<Empleado> {
-    return this.http.get<Empleado>(`${this.baseUrl}/empleados/${id}`);
-  }
-
-  crearEmpleado(empleado: Empleado): Observable<Empleado> {
-    return this.http.post<Empleado>(`${this.baseUrl}/empleados`, empleado);
-  }
-
-  actualizarEmpleado(id: number, empleado: Empleado): Observable<Empleado> {
-    return this.http.put<Empleado>(`${this.baseUrl}/empleados/${id}`, empleado);
-  }
-
-  eliminarEmpleado(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/empleados/${id}`);
+  deleteEmpleado(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/empleados/${id}`);
   }
 }

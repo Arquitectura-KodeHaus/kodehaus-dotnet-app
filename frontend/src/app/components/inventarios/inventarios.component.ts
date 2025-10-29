@@ -1,116 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import { ApiService } from '../../services/api.service';
-import { Inventario, Local } from '../../models/local.model';
+using backend.Services;
+using backend.Services.Interfaces;
+using backend.Services.Implementations;
+using backend.Context;
+using Microsoft.EntityFrameworkCore;
 
-@Component({
-  selector: 'app-inventarios',
-  templateUrl: './inventarios.component.html',
-  styleUrls: ['./inventarios.component.css']
-})
-export class InventariosComponent implements OnInit {
-  inventarios: Inventario[] = [];
-  locales: Local[] = [];
-  inventarioSeleccionado: Inventario | null = null;
-  modoEdicion = false;
-  mostrarFormulario = false;
+var builder = WebApplication.CreateBuilder(args);
 
-  nuevoInventario: Inventario = {
-    id: 0,
-    idLocal: 0,
-    idProductoCatalogo: 0,
-    precioUnitario: 0,
-    stock: 0
-  };
+// Configurar la cadena de conexión
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-  constructor(private apiService: ApiService) {}
+// Registrar servicios
+builder.Services.AddScoped<ILocalService, LocalService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IVentaService, VentaService>();
+builder.Services.AddDbContext<AppDbContext>(options => 
+    options.UseNpgsql(connectionString));
 
-  ngOnInit(): void {
-    this.cargarInventarios();
-    this.cargarLocales();
-  }
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-  cargarInventarios(): void {
-    this.apiService.getInventarios().subscribe({
-      next: (data) => {
-        this.inventarios = data;
-      },
-      error: (error) => console.error('Error cargando inventarios:', error)
+// ✅ CONFIGURAR CORS - Agregar ANTES de builder.Build()
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:4200",  // Desarrollo local
+                "https://kodehaus-frontend-dotnet-616328447495.us-central1.run.app"  // Producción
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
-  }
+});
 
-  cargarLocales(): void {
-    this.apiService.getLocales().subscribe({
-      next: (data) => {
-        this.locales = data;
-      },
-      error: (error) => console.error('Error cargando locales:', error)
-    });
-  }
+var app = builder.Build();
 
-  mostrarFormularioCrear(): void {
-    this.modoEdicion = false;
-    this.nuevoInventario = {
-      id: 0,
-      idLocal: 0,
-      idProductoCatalogo: 0,
-      precioUnitario: 0,
-      stock: 0
-    };
-    this.mostrarFormulario = true;
-  }
-
-  mostrarFormularioEditar(inventario: Inventario): void {
-    this.modoEdicion = true;
-    this.inventarioSeleccionado = inventario;
-    this.nuevoInventario = { ...inventario };
-    this.mostrarFormulario = true;
-  }
-
-  guardarInventario(): void {
-    if (this.modoEdicion && this.inventarioSeleccionado) {
-      this.apiService.actualizarInventario(this.inventarioSeleccionado.id, this.nuevoInventario).subscribe({
-        next: () => {
-          this.cargarInventarios();
-          this.cancelarFormulario();
-        },
-        error: (error) => console.error('Error actualizando inventario:', error)
-      });
-    } else {
-      this.apiService.crearInventario(this.nuevoInventario).subscribe({
-        next: () => {
-          this.cargarInventarios();
-          this.cancelarFormulario();
-        },
-        error: (error) => console.error('Error creando inventario:', error)
-      });
-    }
-  }
-
-  eliminarInventario(id: number): void {
-    if (confirm('¿Estás seguro de que quieres eliminar este inventario?')) {
-      this.apiService.eliminarInventario(id).subscribe({
-        next: () => {
-          this.cargarInventarios();
-        },
-        error: (error) => console.error('Error eliminando inventario:', error)
-      });
-    }
-  }
-
-  cancelarFormulario(): void {
-    this.mostrarFormulario = false;
-    this.inventarioSeleccionado = null;
-    this.modoEdicion = false;
-  }
-
-  obtenerNombreLocal(idLocal: number): string {
-    const local = this.locales.find(l => l.id === idLocal);
-    return local ? local.nombre : `Local ${idLocal}`;
-  }
-
-  obtenerStockClass(stock: number): string {
-    if (stock === 0) return 'stock-agotado';
-    if (stock < 10) return 'stock-bajo';
-    return 'stock-normal';
-  }
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
+// ✅ USAR CORS - Debe ir ANTES de UseAuthorization()
+app.UseCors("AllowAngular");
+
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
