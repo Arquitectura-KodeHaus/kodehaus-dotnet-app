@@ -1,6 +1,5 @@
 using backend.Models;
 using backend.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -23,7 +22,8 @@ namespace backend.Controllers
         {
             try
             {
-                return Ok(await _ventaService.GetAllAsync());
+                var ventas = await _ventaService.GetAllAsync();
+                return Ok(ventas);
             }
             catch (Exception ex)
             {
@@ -65,6 +65,5 @@ namespace backend.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-
     }
 }

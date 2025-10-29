@@ -1,6 +1,5 @@
 using backend.Models;
 using backend.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -19,17 +18,18 @@ namespace backend.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll() =>
-            // wrap to return 500 with details if something explodes
-            await Task.Yield(); // preserve async context
+        public async Task<IActionResult> GetAll()
+        {
             try
             {
-                return Ok(await _inventarioService.GetAllAsync());
+                var inventarios = await _inventarioService.GetAllAsync();
+                return Ok(inventarios);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "Error al obtener inventarios", message = ex.Message });
             }
+        }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
