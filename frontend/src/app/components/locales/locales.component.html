@@ -1,0 +1,123 @@
+<div class="locales-container">
+  <div class="toolbar">
+    <h1>🏢 Gestión de Locales</h1>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Nuevo Local
+    </button>
+  </div>
+
+  <!-- Formulario Modal -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarFormulario()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modoEdicion ? 'Editar Local' : 'Nuevo Local' }}</h2>
+        <button class="btn-close" (click)="cancelarFormulario()">&times;</button>
+      </div>
+      
+      <form (ngSubmit)="guardarLocal()">
+        <div class="form-row">
+          <label for="nombre">Nombre del Local</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevoLocal.nombre" 
+            name="nombre"
+            required
+            placeholder="Ej: Tienda de Ropa"
+            class="input"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="categoria">Categoría</label>
+          <select id="categoria" [(ngModel)]="nuevoLocal.categoria" name="categoria" required class="input">
+            <option value="">Seleccionar categoría</option>
+            <option value="Ropa">Ropa</option>
+            <option value="Electrónicos">Electrónicos</option>
+            <option value="Alimentación">Alimentación</option>
+            <option value="Farmacia">Farmacia</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="numeroLocal">Número de Local</label>
+          <input 
+            type="text" 
+            id="numeroLocal" 
+            [(ngModel)]="nuevoLocal.numeroLocal" 
+            name="numeroLocal"
+            required
+            placeholder="Ej: A-15"
+            class="input"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="estado">Estado</label>
+          <select id="estado" [(ngModel)]="nuevoLocal.estado" name="estado" required class="input">
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <button type="button" class="btn-secondary" (click)="cancelarFormulario()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn">
+            {{ modoEdicion ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de Locales -->
+  <div class="cards-grid" *ngIf="locales.length > 0">
+    <div class="plan-card" *ngFor="let local of locales">
+      <div class="local-header">
+        <h3>{{ local.nombre }}</h3>
+        <span class="status" [ngClass]="'status-' + local.estado.toLowerCase()">
+          {{ local.estado }}
+        </span>
+      </div>
+      
+      <div class="local-info">
+        <div class="info-item">
+          <span class="label">Categoría:</span>
+          <span class="value">{{ local.categoria }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Número:</span>
+          <span class="value">{{ local.numeroLocal }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">ID Plaza:</span>
+          <span class="value">{{ local.idPlaza }}</span>
+        </div>
+      </div>
+
+      <div class="local-actions">
+        <button class="btn-success" (click)="mostrarFormularioEditar(local)">
+          <span>✏️</span> Editar
+        </button>
+        <button class="btn-danger" (click)="eliminarLocal(local.id)">
+          <span>🗑️</span> Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="locales.length === 0">
+    <div class="empty-icon">🏪</div>
+    <h3>No hay locales registrados</h3>
+    <p>Crea tu primer local para comenzar a gestionar tu negocio</p>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Crear Primer Local
+    </button>
+  </div>
+</div>

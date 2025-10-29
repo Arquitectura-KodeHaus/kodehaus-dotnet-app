@@ -1,0 +1,17 @@
+.dashboard-container {
+  max-width: 1200px;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.toolbar h1 {
+  margin: 0;
+  color: var(--primary-dark);
+}
+
+.toolbar .small {
+  margin-top: 4px;
+}

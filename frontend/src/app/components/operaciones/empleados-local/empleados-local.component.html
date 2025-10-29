@@ -1,0 +1,123 @@
+<div class="empleados-local-container">
+  <!-- Header con información del local -->
+  <div class="toolbar">
+    <div>
+      <button class="btn-secondary" (click)="volverAOperaciones()">
+        ← Volver a Operaciones
+      </button>
+      <h1>👥 Empleados - {{ local?.nombre }}</h1>
+      <div class="small">{{ local?.numeroLocal }} | {{ local?.categoria }}</div>
+    </div>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Nuevo Empleado
+    </button>
+  </div>
+
+  <!-- Estadísticas del local -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <h4>Total Empleados</h4>
+      <div class="value">{{ estadisticas.totalEmpleados }}</div>
+    </div>
+    
+    <div class="card" *ngFor="let cargo of getCargos()">
+      <div class="card-icon">👤</div>
+      <h4>{{ cargo }}</h4>
+      <div class="value">{{ estadisticas.porCargo[cargo] }}</div>
+    </div>
+  </div>
+
+  <!-- Formulario Modal -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarFormulario()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modoEdicion ? 'Editar Empleado' : 'Nuevo Empleado' }}</h2>
+        <button class="btn-close" (click)="cancelarFormulario()">&times;</button>
+      </div>
+      
+      <form (ngSubmit)="guardarEmpleado()">
+        <div class="form-row">
+          <label for="nombre">Nombre del Empleado</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevoEmpleado.nombre" 
+            name="nombre"
+            required
+            placeholder="Ej: Juan Pérez"
+            class="input"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="cargo">Cargo</label>
+          <select id="cargo" [(ngModel)]="nuevoEmpleado.cargo" name="cargo" required class="input">
+            <option value="">Seleccionar cargo</option>
+            <option value="Gerente">Gerente</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Vendedor">Vendedor</option>
+            <option value="Cajero">Cajero</option>
+            <option value="Auxiliar">Auxiliar</option>
+            <option value="Otros">Otros</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <button type="button" class="btn-secondary" (click)="cancelarFormulario()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn">
+            {{ modoEdicion ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de empleados -->
+  <div class="chart">
+    <h3>Personal del Local</h3>
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Cargo</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let empleado of empleados">
+            <td>#{{ empleado.id }}</td>
+            <td>{{ empleado.nombre }}</td>
+            <td>
+              <span class="status" [ngClass]="obtenerCargoClass(empleado.cargo)">
+                {{ empleado.cargo }}
+              </span>
+            </td>
+            <td class="actions">
+              <button (click)="mostrarFormularioEditar(empleado)" title="Editar">
+                ✏️
+              </button>
+              <button (click)="eliminarEmpleado(empleado.id)" title="Eliminar">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="empleados.length === 0">
+    <div class="empty-icon">👥</div>
+    <h3>No hay empleados registrados</h3>
+    <p>Registra empleados para este local</p>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Registrar Primer Empleado
+    </button>
+  </div>
+</div>

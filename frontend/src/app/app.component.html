@@ -1,38 +1,35 @@
-<div class="container">
-  <header>
-    <h1>{{ title }}</h1>
-    <p>Datos obtenidos del backend .NET</p>
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="logo">🏪 Plazapp</div>
+    
+    <div class="nav">
+      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <span class="nav-icon">📊</span>
+        Dashboard
+      </a>
+      
+      <a routerLink="/locales" routerLinkActive="active">
+        <span class="nav-icon">🏢</span>
+        Gestión de Locales
+      </a>
+      
+      <a routerLink="/operaciones" routerLinkActive="active">
+        <span class="nav-icon">⚙️</span>
+        Operaciones
+      </a>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="avatar"></div>
   </header>
 
-  <div *ngIf="loading" class="loading">
-    <div class="spinner"></div>
-    <p>Cargando datos...</p>
-  </div>
-
-  <div *ngIf="error" class="error">
-    <p>{{ error }}</p>
-    <button (click)="loadData()">Reintentar</button>
-  </div>
-
-  <div *ngIf="!loading && !error && data.length > 0" class="data-grid">
-    <div class="card" *ngFor="let item of data">
-      <div class="card-header">
-        <h3>{{ item.name }}</h3>
-        <span class="id-badge">ID: {{ item.id }}</span>
-      </div>
-      <div class="card-body">
-        <p>{{ item.description }}</p>
-      </div>
+  <!-- Main Content -->
+  <main class="container">
+    <div class="content">
+      <router-outlet></router-outlet>
     </div>
-  </div>
-
-  <div *ngIf="!loading && !error && data.length === 0" class="no-data">
-    <p>No hay datos disponibles</p>
-  </div>
-
-  <footer>
-    <button (click)="loadData()" class="reload-btn" [disabled]="loading">
-      {{ loading ? 'Cargando...' : 'Recargar Datos' }}
-    </button>
-  </footer>
+  </main>
 </div>

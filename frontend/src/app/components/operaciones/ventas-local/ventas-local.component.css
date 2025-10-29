@@ -1,0 +1,227 @@
+.ventas-local-container {
+  max-width: 1200px;
+}
+
+.toolbar h1 {
+  margin: 8px 0 4px 0;
+  color: var(--primary-dark);
+}
+
+.toolbar .small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.actions button {
+  margin-right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.actions button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el modal de ventas */
+.venta-modal {
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.venta-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.productos-disponibles h3,
+.productos-seleccionados h3 {
+  margin: 0 0 16px 0;
+  color: var(--primary-dark);
+  font-size: 18px;
+}
+
+.inventarios-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.inventario-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid #e6e6e6;
+}
+
+.inventario-info h4 {
+  margin: 0 0 8px 0;
+  color: var(--primary-dark);
+  font-size: 16px;
+}
+
+.inventario-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.seleccionados-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.producto-seleccionado {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  border: 1px solid #e6e6e6;
+}
+
+.producto-info h4 {
+  margin: 0 0 4px 0;
+  color: var(--primary-dark);
+  font-size: 16px;
+}
+
+.producto-info p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cantidad-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cantidad {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e6e6e6;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cantidad:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.cantidad-input {
+  width: 60px;
+  padding: 6px;
+  border: 1px solid #e6e6e6;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.subtotal {
+  font-size: 16px;
+  color: var(--primary-dark);
+  text-align: right;
+}
+
+.btn-small {
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.total-venta {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.total-venta h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.venta-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.venta-actions button {
+  flex: 1;
+}
+
+.no-productos {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.productos-venta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.producto-item {
+  background: var(--primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .venta-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .producto-seleccionado {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .cantidad-controls {
+    justify-content: center;
+  }
+  
+  .subtotal {
+    text-align: center;
+  }
+}

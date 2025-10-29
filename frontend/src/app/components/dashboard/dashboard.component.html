@@ -1,0 +1,85 @@
+<div class="dashboard-container">
+  <div class="toolbar">
+    <h1>📊 Dashboard</h1>
+    <div class="small">Resumen general de Plazapp</div>
+  </div>
+
+  <!-- Estadísticas principales -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">🏪</div>
+      <h4>Locales Activos</h4>
+      <div class="value">{{ estadisticas.totalLocales }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>Productos en Inventario</h4>
+      <div class="value">{{ estadisticas.totalInventarios }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h4>Total de Ventas</h4>
+      <div class="value">{{ estadisticas.totalVentas }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <h4>Empleados</h4>
+      <div class="value">{{ estadisticas.totalEmpleados }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h4>Ventas Hoy</h4>
+      <div class="value">{{ estadisticas.ventasHoy }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">💵</div>
+      <h4>Ingresos Hoy</h4>
+      <div class="value">${{ estadisticas.ingresosHoy | number:'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <!-- Acciones rápidas -->
+  <div class="chart">
+    <div class="legend">
+      <h3>Acciones Rápidas</h3>
+      <div class="item">
+        <span>🏢</span>
+        <a routerLink="/locales" class="btn">Gestionar Locales</a>
+      </div>
+      <div class="item">
+        <span>⚙️</span>
+        <a routerLink="/operaciones" class="btn">Ver Operaciones</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actividad reciente -->
+  <div class="chart">
+    <h3>Actividad Reciente</h3>
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Descripción</th>
+            <th>Local</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let venta of ventas.slice(0, 5)">
+            <td><span class="status active">Venta</span></td>
+            <td>Total: ${{ venta.total | number:'1.2-2' }}</td>
+            <td>Local #{{ venta.idLocal }}</td>
+            <td>{{ venta.fecha | date:'short' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

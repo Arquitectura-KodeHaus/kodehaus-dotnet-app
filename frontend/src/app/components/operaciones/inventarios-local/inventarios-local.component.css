@@ -1,0 +1,33 @@
+.inventarios-local-container {
+  max-width: 1200px;
+}
+
+.toolbar h1 {
+  margin: 8px 0 4px 0;
+  color: var(--primary-dark);
+}
+
+.toolbar .small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.actions button {
+  margin-right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.actions button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}

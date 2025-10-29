@@ -1,0 +1,182 @@
+<div class="ventas-local-container">
+  <!-- Header con información del local -->
+  <div class="toolbar">
+    <div>
+      <button class="btn-secondary" (click)="volverAOperaciones()">
+        ← Volver a Operaciones
+      </button>
+      <h1>💰 Ventas - {{ local?.nombre }}</h1>
+      <div class="small">{{ local?.numeroLocal }} | {{ local?.categoria }}</div>
+    </div>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Nueva Venta
+    </button>
+  </div>
+
+  <!-- Estadísticas del local -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h4>Total Ventas</h4>
+      <div class="value">{{ estadisticas.totalVentas }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">💵</div>
+      <h4>Ingresos Totales</h4>
+      <div class="value">${{ estadisticas.ingresosTotales | number:'1.2-2' }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h4>Ventas Hoy</h4>
+      <div class="value">{{ estadisticas.ventasHoy }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">💎</div>
+      <h4>Promedio por Venta</h4>
+      <div class="value">${{ estadisticas.promedioVenta | number:'1.2-2' }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">📅</div>
+      <h4>Ingresos Hoy</h4>
+      <div class="value">${{ estadisticas.ingresosHoy | number:'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <!-- Formulario Modal de Nueva Venta -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarFormulario()">
+    <div class="modal venta-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nueva Venta</h2>
+        <button class="btn-close" (click)="cancelarFormulario()">&times;</button>
+      </div>
+      
+      <div class="venta-content">
+        <!-- Productos Disponibles -->
+        <div class="productos-disponibles">
+          <h3>Productos Disponibles</h3>
+          <div class="inventarios-grid">
+            <div class="inventario-item" *ngFor="let inventario of inventarios">
+              <div class="inventario-info">
+                <h4>Producto #{{ inventario.idProductoCatalogo }}</h4>
+                <p><strong>Precio:</strong> ${{ inventario.precioUnitario | number:'1.2-2' }}</p>
+                <p><strong>Stock:</strong> {{ inventario.stock }} unidades</p>
+              </div>
+              <button class="btn" (click)="agregarProducto(inventario)">
+                <span>+</span> Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Productos Seleccionados -->
+        <div class="productos-seleccionados" *ngIf="productosSeleccionados.length > 0">
+          <h3>Productos Seleccionados</h3>
+          <div class="seleccionados-list">
+            <div class="producto-seleccionado" *ngFor="let producto of productosSeleccionados">
+              <div class="producto-info">
+                <h4>Producto #{{ producto.inventario.idProductoCatalogo }}</h4>
+                <p>${{ producto.inventario.precioUnitario | number:'1.2-2' }} c/u</p>
+              </div>
+              
+              <div class="cantidad-controls">
+                <button class="btn-cantidad" (click)="actualizarCantidad(producto, producto.cantidad - 1)">
+                  -
+                </button>
+                <input 
+                  type="number" 
+                  [value]="producto.cantidad" 
+                  (change)="actualizarCantidadFromInput(producto, $event)"
+                  min="1" 
+                  [max]="producto.inventario.stock"
+                  class="cantidad-input"
+                >
+                <button class="btn-cantidad" (click)="actualizarCantidad(producto, producto.cantidad + 1)">
+                  +
+                </button>
+              </div>
+              
+              <div class="subtotal">
+                <strong>${{ producto.subtotal | number:'1.2-2' }}</strong>
+              </div>
+              
+              <button class="btn-danger btn-small" (click)="eliminarProducto(producto)">
+                🗑️
+              </button>
+            </div>
+          </div>
+          
+          <!-- Total de la Venta -->
+          <div class="total-venta">
+            <h3>Total: ${{ totalVenta | number:'1.2-2' }}</h3>
+          </div>
+          
+          <!-- Botones de Acción -->
+          <div class="venta-actions">
+            <button type="button" class="btn-secondary" (click)="cancelarFormulario()">
+              Cancelar
+            </button>
+            <button type="button" class="btn" (click)="guardarVenta()">
+              <span>💾</span> Guardar Venta
+            </button>
+          </div>
+        </div>
+
+        <!-- Mensaje si no hay productos seleccionados -->
+        <div class="no-productos" *ngIf="productosSeleccionados.length === 0">
+          <p>Selecciona productos del inventario para crear la venta</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de ventas -->
+  <div class="chart">
+    <h3>Historial de Ventas</h3>
+    <div class="table-container">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID Venta</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Productos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let venta of ventas">
+            <td>#{{ venta.id }}</td>
+            <td>{{ venta.fecha | date:'short' }}</td>
+            <td>${{ venta.total | number:'1.2-2' }}</td>
+            <td>
+              <div class="productos-venta" *ngIf="venta.ventaInventarios">
+                <span *ngFor="let item of venta.ventaInventarios" class="producto-item">
+                  {{ item.cantidad }}x ({{ item.subtotal | number:'1.2-2' }})
+                </span>
+              </div>
+            </td>
+            <td class="actions">
+              <button (click)="eliminarVenta(venta.id)" title="Eliminar">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="ventas.length === 0">
+    <div class="empty-icon">💰</div>
+    <h3>No hay ventas registradas</h3>
+    <p>Registra la primera venta para este local</p>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Registrar Primera Venta
+    </button>
+  </div>
+</div>

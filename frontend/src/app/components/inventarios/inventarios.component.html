@@ -1,0 +1,122 @@
+<div class="inventarios-container">
+  <div class="header">
+    <h1>Gestión de Inventarios</h1>
+    <button class="btn-primary" (click)="mostrarFormularioCrear()">
+      <span>+</span> Nuevo Producto
+    </button>
+  </div>
+
+  <!-- Formulario Modal -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarFormulario()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modoEdicion ? 'Editar Inventario' : 'Nuevo Producto' }}</h2>
+        <button class="btn-close" (click)="cancelarFormulario()">&times;</button>
+      </div>
+      
+      <form class="form" (ngSubmit)="guardarInventario()">
+        <div class="form-group">
+          <label for="idLocal">Local</label>
+          <select id="idLocal" [(ngModel)]="nuevoInventario.idLocal" name="idLocal" required>
+            <option value="">Seleccionar local</option>
+            <option *ngFor="let local of locales" [value]="local.id">
+              {{ local.nombre }} ({{ local.numeroLocal }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="idProductoCatalogo">ID Producto Catálogo</label>
+          <input 
+            type="number" 
+            id="idProductoCatalogo" 
+            [(ngModel)]="nuevoInventario.idProductoCatalogo" 
+            name="idProductoCatalogo"
+            required
+            placeholder="Ej: 1001"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="precioUnitario">Precio Unitario</label>
+          <input 
+            type="number" 
+            id="precioUnitario" 
+            [(ngModel)]="nuevoInventario.precioUnitario" 
+            name="precioUnitario"
+            step="0.01"
+            required
+            placeholder="Ej: 25.99"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="stock">Stock</label>
+          <input 
+            type="number" 
+            id="stock" 
+            [(ngModel)]="nuevoInventario.stock" 
+            name="stock"
+            required
+            placeholder="Ej: 50"
+          >
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelarFormulario()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary">
+            {{ modoEdicion ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Lista de Inventarios -->
+  <div class="inventarios-grid" *ngIf="inventarios.length > 0">
+    <div class="inventario-card" *ngFor="let inventario of inventarios">
+      <div class="inventario-header">
+        <h3>Producto #{{ inventario.idProductoCatalogo }}</h3>
+        <span class="stock-badge" [ngClass]="obtenerStockClass(inventario.stock)">
+          {{ inventario.stock }} unidades
+        </span>
+      </div>
+      
+      <div class="inventario-info">
+        <div class="info-item">
+          <span class="label">Local:</span>
+          <span class="value">{{ obtenerNombreLocal(inventario.idLocal) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Precio:</span>
+          <span class="value">${{ inventario.precioUnitario | number:'1.2-2' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">Valor Total:</span>
+          <span class="value">${{ (inventario.precioUnitario * inventario.stock) | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="inventario-actions">
+        <button class="btn-edit" (click)="mostrarFormularioEditar(inventario)">
+          <span>✏️</span> Editar
+        </button>
+        <button class="btn-delete" (click)="eliminarInventario(inventario.id)">
+          <span>🗑️</span> Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="inventarios.length === 0">
+    <div class="empty-icon">📦</div>
+    <h3>No hay productos en inventario</h3>
+    <p>Agrega productos para comenzar a gestionar tu inventario</p>
+    <button class="btn-primary" (click)="mostrarFormularioCrear()">
+      <span>+</span> Agregar Primer Producto
+    </button>
+  </div>
+</div>

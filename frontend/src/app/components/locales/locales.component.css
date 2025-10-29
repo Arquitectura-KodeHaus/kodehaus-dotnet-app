@@ -1,0 +1,60 @@
+.locales-container {
+  max-width: 1200px;
+}
+
+.local-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.local-header h3 {
+  margin: 0;
+  color: var(--primary-dark);
+}
+
+.local-info {
+  margin-bottom: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.info-item .label {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.info-item .value {
+  color: var(--primary-dark);
+}
+
+.local-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.local-actions button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.form-row button {
+  flex: 1;
+}

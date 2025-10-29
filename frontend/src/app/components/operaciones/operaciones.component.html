@@ -1,0 +1,106 @@
+<div class="operaciones-container">
+  <!-- Selector de Local -->
+  <div class="toolbar">
+    <h1>⚙️ Operaciones por Local</h1>
+    <div class="local-selector">
+      <label for="localSelect">Seleccionar Local:</label>
+      <select
+        id="localSelect"
+        [(ngModel)]="localSeleccionado"
+        (ngModelChange)="seleccionarLocal($event)"
+        class="input"
+        >
+        <option *ngFor="let local of locales" [ngValue]="local">
+            {{ local.nombre }} ({{ local.numeroLocal }})
+        </option>
+        </select>
+    </div>
+  </div>
+
+  <!-- Información del Local Seleccionado -->
+  <div *ngIf="localSeleccionado" class="local-info">
+    <div class="local-header">
+      <h2>{{ localSeleccionado.nombre }}</h2>
+      <span class="status" [ngClass]="'status-' + localSeleccionado.estado.toLowerCase()">
+        {{ localSeleccionado.estado }}
+      </span>
+    </div>
+    <div class="local-details">
+      <p><strong>Categoría:</strong> {{ localSeleccionado.categoria }}</p>
+      <p><strong>Número:</strong> {{ localSeleccionado.numeroLocal }}</p>
+    </div>
+  </div>
+
+  <!-- Estadísticas del Local -->
+  <div *ngIf="localSeleccionado" class="cards">
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>Inventarios</h4>
+      <div class="value">{{ estadisticasLocal.totalInventarios }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h4>Ventas Totales</h4>
+      <div class="value">{{ estadisticasLocal.totalVentas }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">👥</div>
+      <h4>Empleados</h4>
+      <div class="value">{{ estadisticasLocal.totalEmpleados }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">📈</div>
+      <h4>Ventas Hoy</h4>
+      <div class="value">{{ estadisticasLocal.ventasHoy }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">💵</div>
+      <h4>Ingresos Hoy</h4>
+      <div class="value">${{ estadisticasLocal.ingresosHoy | number:'1.2-2' }}</div>
+    </div>
+    
+    <div class="card">
+      <div class="card-icon">🏪</div>
+      <h4>Valor Inventario</h4>
+      <div class="value">${{ estadisticasLocal.valorInventario | number:'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <!-- Navegación de Operaciones -->
+  <div *ngIf="localSeleccionado" class="operations-nav">
+    <h3>Gestión de Operaciones</h3>
+    <div class="cards-grid">
+      <div class="plan-card" routerLink="/operaciones/inventarios" [queryParams]="{localId: localSeleccionado.id}">
+        <div class="card-icon">📦</div>
+        <h4>Inventarios</h4>
+        <p>Gestionar productos y stock del local</p>
+        <div class="small">{{ estadisticasLocal.totalInventarios }} productos</div>
+      </div>
+      
+      <div class="plan-card" routerLink="/operaciones/ventas" [queryParams]="{localId: localSeleccionado.id}">
+        <div class="card-icon">💰</div>
+        <h4>Ventas</h4>
+        <p>Registrar y consultar ventas del local</p>
+        <div class="small">{{ estadisticasLocal.totalVentas }} ventas registradas</div>
+      </div>
+      
+      <div class="plan-card" routerLink="/operaciones/empleados" [queryParams]="{localId: localSeleccionado.id}">
+        <div class="card-icon">👥</div>
+        <h4>Empleados</h4>
+        <p>Administrar personal del local</p>
+        <div class="small">{{ estadisticasLocal.totalEmpleados }} empleados</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado sin local seleccionado -->
+  <div *ngIf="!localSeleccionado" class="empty-state">
+    <div class="empty-icon">🏪</div>
+    <h3>Selecciona un Local</h3>
+    <p>Elige un local para ver sus operaciones y estadísticas</p>
+  </div>
+</div>
