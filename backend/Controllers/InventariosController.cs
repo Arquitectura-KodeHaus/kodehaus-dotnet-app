@@ -2,6 +2,8 @@ using backend.Models;
 using backend.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace backend.Controllers
 {
@@ -18,54 +20,86 @@ namespace backend.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll() =>
-            Ok(await _inventarioService.GetAllAsync());
+            // wrap to return 500 with details if something explodes
+            await Task.Yield(); // preserve async context
+            try
+            {
+                return Ok(await _inventarioService.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al obtener inventarios", message = ex.Message });
+            }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var inventario = await _inventarioService.GetByIdAsync(id);
-            return inventario == null ? NotFound() : Ok(inventario);
+            try
+            {
+                var inventario = await _inventarioService.GetByIdAsync(id);
+                return inventario == null ? NotFound() : Ok(inventario);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al obtener inventario", message = ex.Message });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(Inventario inventario)
         {
-            var nuevo = await _inventarioService.CreateAsync(inventario);
-
-            // Retorna 400 Bad Request si el servicio devuelve null por FK inexistente
-            if (nuevo == null)
+            try
             {
-                return BadRequest("El Local especificado por 'IdLocal' no existe en la base de datos.");
+                var nuevo = await _inventarioService.CreateAsync(inventario);
+                if (nuevo == null)
+                    return BadRequest("El Local especificado por 'IdLocal' no existe en la base de datos.");
+                return CreatedAtAction(nameof(Get), new { id = nuevo.Id }, nuevo);
             }
-            
-            return CreatedAtAction(nameof(Get), new { id = nuevo.Id }, nuevo);
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23503")
+                    return BadRequest("El Local especificado por 'IdLocal' no existe en la base de datos.");
+                return StatusCode(500, new { error = "Error al crear inventario", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al crear inventario", message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Inventario inventario)
         {
-            var actualizado = await _inventarioService.UpdateAsync(id, inventario);
-    
-            if (actualizado == null)
+            try
             {
-                // Diferenciar si no se encontró el inventario (NotFound)
-                // o si falló la verificación de la FK (Bad Request)
-                /*if (!await _inventarioService.LocalExists(inventario.IdLocal))
-                {
-                    return BadRequest("El nuevo Local especificado por 'IdLocal' no existe en la base de datos.");
-                }*/
-                
-                return NotFound(); // Si el inventario original con el 'id' no se encontró.
+                var actualizado = await _inventarioService.UpdateAsync(id, inventario);
+                if (actualizado == null) return NotFound();
+                return Ok(actualizado);
             }
-
-            return Ok(actualizado);
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23503")
+                    return BadRequest("El nuevo Local especificado por 'IdLocal' no existe en la base de datos.");
+                return StatusCode(500, new { error = "Error al actualizar inventario", message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al actualizar inventario", message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var eliminado = await _inventarioService.DeleteAsync(id);
-            return eliminado ? NoContent() : NotFound();
+            try
+            {
+                var eliminado = await _inventarioService.DeleteAsync(id);
+                return eliminado ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Error al eliminar inventario", message = ex.Message });
+            }
         }
     }
 }
