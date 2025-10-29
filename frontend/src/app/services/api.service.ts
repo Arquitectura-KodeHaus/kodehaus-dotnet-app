@@ -21,7 +21,7 @@ export class ApiService {
     return this.http.get<SampleModel[]>(`${this.baseUrl}/api`);
   }
 
-  // Métodos para Locales
+  // ========== LOCALES ==========
   getLocales(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/locales`);
   }
@@ -38,7 +38,7 @@ export class ApiService {
     return this.http.delete<any>(`${this.baseUrl}/locales/${id}`);
   }
 
-  // Métodos para Inventarios
+  // ========== INVENTARIOS ==========
   getInventarios(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/inventarios`);
   }
@@ -55,16 +55,29 @@ export class ApiService {
     return this.http.delete<any>(`${this.baseUrl}/inventarios/${id}`);
   }
 
-  // Métodos para Ventas
+  // ========== VENTAS ==========
   getVentas(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/ventas`);
+  }
+
+  getVentasPorLocal(localId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/ventas/local/${localId}`);
   }
 
   createVenta(venta: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/ventas`, venta);
   }
 
-  // Métodos para Empleados
+  updateVenta(id: number, venta: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/ventas/${id}`, venta);
+  }
+
+  // ✅ MÉTODO FALTANTE
+  eliminarVenta(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/ventas/${id}`);
+  }
+
+  // ========== EMPLEADOS ==========
   getEmpleados(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/empleados`);
   }
