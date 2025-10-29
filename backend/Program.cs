@@ -19,6 +19,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddScoped<ILocalService, LocalService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
+builder.Services.AddScoped<IEmpleadoService, EmpleadoService>();
 builder.Services.AddScoped<IDataService, DataService>();
 
 // Database
@@ -58,6 +59,29 @@ else
 
 var app = builder.Build();
 
+// ✅ NUEVO: Aplicar migraciones automáticamente al iniciar
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        
+        Console.WriteLine("🔄 Applying database migrations...");
+        context.Database.Migrate();
+        Console.WriteLine("✅ Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error applying migrations: {ex.Message}");
+        if (ex.InnerException != null)
+        {
+            Console.WriteLine($"   Inner Exception: {ex.InnerException.Message}");
+        }
+        // No lanzar excepción para permitir que la app inicie (útil para debugging)
+    }
+}
+
 // Swagger in all environments for testing
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -70,8 +94,8 @@ app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
-Console.WriteLine($"Starting application on port {port}");
-Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
-Console.WriteLine($"Connection String: {connectionString?.Substring(0, Math.Min(50, connectionString?.Length ?? 0))}...");
+Console.WriteLine($"🚀 Starting application on port {port}");
+Console.WriteLine($"🌍 Environment: {app.Environment.EnvironmentName}");
+Console.WriteLine($"🔗 Connection String: {connectionString?.Substring(0, Math.Min(50, connectionString?.Length ?? 0))}...");
 
 app.Run();
