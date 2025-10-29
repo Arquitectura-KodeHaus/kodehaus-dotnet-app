@@ -23,7 +23,9 @@ builder.Services.AddCors(options =>
             policy.WithOrigins("http://localhost:4200",
                 "https://kodehaus-frontend-dotnet-616328447495.us-central1.run.app")
                   .AllowAnyHeader()
-                  .AllowAnyMethod();
+                  .AllowAnyMethod()
+                  .AllowCredentials()
+                  .AllowAnyOrigin();
         });
 });
 

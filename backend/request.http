@@ -1,166 +1,158 @@
-// Definición de la URL base para facilitar la gestión
-@baseUrl = http://localhost:5000/api
+// Definición de URLs
+@localUrl = http://localhost:5000/api
+@prodUrl = https://kodehaus-backend-service-616328447495.us-central1.run.app/api
+
+// Usar esta línea para local o producción
+@baseUrl = {{prodUrl}}
 
 // ====================================================================
-//                       I. LOCALES ENDPOINTS (api/Locales)
+//                       HEALTH CHECK
+// ====================================================================
+
+###
+# Health Check
+GET {{baseUrl}}
+Accept: application/json
+
+###
+# Swagger UI
+# Abre esto en el navegador
+# https://kodehaus-backend-service-616328447495.us-central1.run.app/swagger
+
+// ====================================================================
+//                       I. LOCALES ENDPOINTS
 // ====================================================================
 
 ###
 # 1.1 GET: Obtener todos los Locales
-GET {{baseUrl}}/Locales
+GET {{baseUrl}}/locales
 Accept: application/json
 
 ###
 # 1.2 POST: Crear un nuevo Local
-POST {{baseUrl}}/Locales
+POST {{baseUrl}}/locales
 Content-Type: application/json
 
 {
-    "idPlaza": 1,
-    "nombre": "La Cafetería",
-    "categoria": "Comida",
-    "numeroLocal": "C-01",
-    "estado": "Disponible"
+    "nombre": "Local Test desde REST Client",
+    "direccion": "Calle Falsa 123",
+    "telefono": "555-1234"
 }
 
 ###
 # 1.3 GET: Obtener un Local por ID
-# Asume que el ID 1 ya existe o fue creado
-GET {{baseUrl}}/Locales/1
+GET {{baseUrl}}/locales/1
 Accept: application/json
 
 ###
-# 1.4 PUT: Actualizar un Local existente
-# Nota: Debes enviar el 'id' en el cuerpo
-PUT {{baseUrl}}/Locales/1
+# 1.4 PUT: Actualizar un Local
+PUT {{baseUrl}}/locales/1
 Content-Type: application/json
 
 {
     "id": 1,
-    "idPlaza": 1,
-    "nombre": "La Cafetería Premium",
-    "categoria": "Bebidas",
-    "numeroLocal": "C-01",
-    "estado": "Ocupado"
+    "nombre": "Local Actualizado",
+    "direccion": "Nueva Dirección 456",
+    "telefono": "555-5678"
 }
 
 ###
 # 1.5 DELETE: Eliminar un Local
-# Asegúrate de usar un ID que exista y que no esté referenciado por Inventarios o Ventas
-DELETE {{baseUrl}}/Locales/2
+DELETE {{baseUrl}}/locales/999
 
 
 // ====================================================================
-//                      II. INVENTARIOS ENDPOINTS (api/Inventarios)
+//                      II. INVENTARIOS ENDPOINTS
 // ====================================================================
 
 ###
 # 2.1 GET: Obtener todos los Inventarios
-GET {{baseUrl}}/Inventarios
+GET {{baseUrl}}/inventarios
 Accept: application/json
 
 ###
 # 2.2 POST: Crear un nuevo Inventario
-# Asegúrate de que IdLocal (ej. 1) exista.
-POST {{baseUrl}}/Inventarios
+POST {{baseUrl}}/inventarios
 Content-Type: application/json
 
 {
-    "idLocal": 3,
+    "idLocal": 1,
     "idProductoCatalogo": 52,
     "precioUnitario": 7.99,
     "stock": 100
 }
 
 ###
-# 2.3 GET: Obtener un Inventario por ID
-# Asume que el ID 1 ya existe
-GET {{baseUrl}}/Inventarios/1
+# 2.3 GET: Obtener Inventarios por Local
+GET {{baseUrl}}/inventarios/local/1
 Accept: application/json
-
-###
-# 2.4 PUT: Actualizar un Inventario existente
-PUT {{baseUrl}}/Inventarios/1
-Content-Type: application/json
-
-{
-    "id": 1,
-    "idLocal": 1,
-    "idProductoCatalogo": 50,
-    "precioUnitario": 6.50,
-    "stock": 95
-}
-
-###
-# 2.5 DELETE: Eliminar un Inventario
-DELETE {{baseUrl}}/Inventarios/2
 
 
 // ====================================================================
-//                        III. VENTAS ENDPOINTS (api/Ventas)
+//                        III. VENTAS ENDPOINTS
 // ====================================================================
 
 ###
 # 3.1 GET: Obtener todas las Ventas
-GET {{baseUrl}}/Ventas
+GET {{baseUrl}}/ventas
 Accept: application/json
-
 
 ###
 # 3.2 POST: Crear una nueva Venta
-# Ahora el backend calculará la fecha, subtotales y total automáticamente.
-# Solo necesitas enviar el ID del local y los productos con sus cantidades.
-
-POST {{baseUrl}}/Ventas
+POST {{baseUrl}}/ventas
 Content-Type: application/json
-Accept: application/json
 
 {
-    "idLocal": 3,
+    "idLocal": 1,
     "ventaInventarios": [
-        { "idInventario": 9, "cantidad": 1 }
+        { "idInventario": 1, "cantidad": 2 }
     ]
 }
 
-
 ###
-# 3.3 GET: Obtener una Venta por ID
-# Asume que el ID 1 ya existe.
-GET {{baseUrl}}/Ventas/1
+# 3.3 GET: Obtener Ventas por Local
+GET {{baseUrl}}/ventas/local/1
 Accept: application/json
+
 
 // ====================================================================
-//                        IV. Empleados ENDPOINTS (api/Empleados)
+//                        IV. EMPLEADOS ENDPOINTS
 // ====================================================================
 
 ###
-GET {{baseUrl}}/Empleados
+# 4.1 GET: Obtener todos los Empleados
+GET {{baseUrl}}/empleados
 Accept: application/json
 
 ###
-GET {{baseUrl}}/Empleados/2
-Accept: application/json
-
-
-###
-POST {{baseUrl}}/Empleados
+# 4.2 POST: Crear un nuevo Empleado
+POST {{baseUrl}}/empleados
 Content-Type: application/json
-Accept: application/json
 
 {
-  "nombre": "Laura Gómez",
-  "cargo": "Supervisora",
-  "localId": 1
+    "nombre": "Juan Pérez",
+    "cargo": "Vendedor",
+    "localId": 1
 }
 
 ###
-PUT {{baseUrl}}/Empleados/2
-Content-Type: application/json
+# 4.3 GET: Obtener Empleados por Local
+GET {{baseUrl}}/empleados/local/1
 Accept: application/json
 
+###
+# 4.4 PUT: Actualizar Empleado
+PUT {{baseUrl}}/empleados/1
+Content-Type: application/json
+
 {
-  "nombre": "María López",
-  "cargo": "Jefa de Ventas",
-  "localId": 1
+    "id": 1,
+    "nombre": "Juan Pérez Actualizado",
+    "cargo": "Supervisor",
+    "localId": 1
 }
+
+###
+# 4.5 DELETE: Eliminar Empleado
+DELETE {{baseUrl}}/empleados/999
 
