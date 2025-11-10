@@ -62,6 +62,7 @@ frontend/.angular/
 backend/bin/
 backend/obj/
 backend/*.user
+backend\appsettings.json
 
 # IDE
 .vs/
