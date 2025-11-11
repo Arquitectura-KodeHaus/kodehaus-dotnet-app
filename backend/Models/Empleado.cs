@@ -8,5 +8,5 @@ public class Empleado
     public string Nombre { get; set; } = string.Empty;
     public string Cargo { get; set; } = string.Empty;
     public int LocalId { get; set; }
-
+    public string Contraseña { get; set; } = string.Empty;
 }

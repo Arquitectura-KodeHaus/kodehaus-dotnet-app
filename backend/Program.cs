@@ -1,8 +1,12 @@
 using backend.Context;
+using backend.Custom;
 using backend.Services;
 using backend.Services.Implementations;
 using backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +28,27 @@ builder.Services.AddScoped<IDataService, DataService>();
 // Database
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(connectionString));
+
+builder.Services.AddSingleton<Utils>();
+
+builder.Services.AddAuthentication(config =>
+{
+    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(config =>
+{
+    config.RequireHttpsMetadata = false;
+    config.SaveToken = true;
+    config.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
 
 // Controllers and API
 builder.Services.AddControllers();
@@ -84,8 +109,11 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
+
 // DO NOT use HTTPS redirection in Cloud Run (handled by load balancer)
 // app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 // CRITICAL: CORS must be before UseAuthorization
 app.UseCors("AllowFrontend");
