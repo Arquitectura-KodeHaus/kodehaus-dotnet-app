@@ -1,12 +1,9 @@
-﻿namespace backend.Models
+﻿namespace backend.Models.DTOs
 {
-    public class Usuario
+    public class RegisterDTO
     {
-        public int Id { get; set; }
         public string NombreUsuario { get; set; } = string.Empty;
         public string Contraseña { get; set; } = string.Empty;
         public string Cedula { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty;
-
     }
 }

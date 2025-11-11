@@ -25,19 +25,19 @@ namespace backend.Custom
             }
         }
 
-        public string generateJwtSecret(Empleado modelo)
+        public string generateJwtSecret(Usuario modelo)
         {
-            var empleadoClaims = new []
+            var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, modelo.Id.ToString()),
-                new Claim(ClaimTypes.Name, modelo.Nombre)
+                new Claim("Cedula", modelo.Cedula),
+                new Claim(ClaimTypes.Role, modelo.Rol)
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
 
             var jwtConfig = new JwtSecurityToken(
-                claims: empleadoClaims,
+                claims: claims,
                 expires: DateTime.Now.AddMinutes(60),
                 signingCredentials: credentials);
 

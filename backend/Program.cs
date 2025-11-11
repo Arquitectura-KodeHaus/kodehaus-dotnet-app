@@ -5,6 +5,7 @@ using backend.Services.Implementations;
 using backend.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -24,6 +25,7 @@ builder.Services.AddScoped<ILocalService, LocalService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<IDataService, DataService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options => 
@@ -48,6 +50,12 @@ builder.Services.AddAuthentication(config =>
         ClockSkew = TimeSpan.Zero,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
+});
+
+builder.Services.AddAuthorization(Options =>
+{
+    Options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    Options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
 });
 
 // Controllers and API
@@ -117,6 +125,7 @@ app.UseAuthentication();
 
 // CRITICAL: CORS must be before UseAuthorization
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
