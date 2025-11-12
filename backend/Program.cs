@@ -26,6 +26,8 @@ builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<IDataService, DataService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+// ✅ NUEVO: HttpClient para llamadas a otros servicios
+builder.Services.AddHttpClient();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options => 
