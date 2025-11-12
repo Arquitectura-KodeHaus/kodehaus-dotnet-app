@@ -61,27 +61,43 @@ namespace backend.Services.Implementations
                 var gestionPlazasUrl = _configuration["ServiceUrls:GestionPlazasUrl"];
                 var loginUrl = $"{gestionPlazasUrl}/api/auth/login";
 
+                Console.WriteLine($"🔄 Redirecting login to: {loginUrl}");
+                Console.WriteLine($"📤 Login data - Cedula: {login.Cedula}");
+
                 var jsonContent = JsonSerializer.Serialize(login);
+                Console.WriteLine($"📦 JSON Request: {jsonContent}");
+                
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(loginUrl, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"📥 Response Status: {response.StatusCode}");
+                Console.WriteLine($"📥 Response Content: {responseContent}");
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"❌ Login failed - Status: {response.StatusCode}, Response: {responseContent}");
                     return null;
+                }
 
-                var responseContent = await response.Content.ReadAsStringAsync();
                 var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
                 // Extraer el token de la respuesta
                 if (jsonResponse.TryGetProperty("token", out var tokenElement))
                 {
-                    return tokenElement.GetString();
+                    var token = tokenElement.GetString();
+                    Console.WriteLine($"✅ Login successful - Token received");
+                    return token;
                 }
 
+                Console.WriteLine($"⚠️ No token found in response");
                 return null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"💥 Exception during login: {ex.Message}");
+                Console.WriteLine($"💥 StackTrace: {ex.StackTrace}");
                 return null;
             }
         }
