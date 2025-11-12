@@ -34,7 +34,7 @@ namespace backend.Services.Implementations
             var newUser = new Usuario
             {
                 NombreUsuario = usuario.NombreUsuario,
-                Contraseña = _utils.encryptPassword(usuario.Contraseña),
+                Contrasena = _utils.encryptPassword(usuario.Contrasena),
                 Cedula = usuario.Cedula,
                 Rol = rol,
                 IdLocal = usuario.IdLocal
@@ -51,7 +51,7 @@ namespace backend.Services.Implementations
         {
             var user = await _context.Usuarios.FirstOrDefaultAsync(u =>
                 u.Cedula == login.Cedula &&
-                u.Contraseña == _utils.encryptPassword(login.Contraseña));
+                u.Contrasena == _utils.encryptPassword(login.Contrasena));
 
             if (user == null)
                 return null;
