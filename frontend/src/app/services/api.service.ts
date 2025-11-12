@@ -13,7 +13,7 @@ export interface SampleModel {
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'https://backend-service-java-2-616328447495.us-central1.run.app/api';
+  private baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
