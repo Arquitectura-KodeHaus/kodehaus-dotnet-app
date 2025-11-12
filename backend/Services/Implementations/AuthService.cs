@@ -20,7 +20,7 @@ namespace backend.Services.Implementations
             _logger = logger;
         }
 
-        public async Task<Usuario?> Login(LoginDTO loginDto)
+        public async Task<Usuario?> LoginAsync(LoginDTO loginDto)
         {
             try
             {
@@ -63,17 +63,7 @@ namespace backend.Services.Implementations
             }
         }
 
-        public async Task<Usuario?> RegisterAdmin(RegisterDTO registerDto)
-        {
-            return await Register(registerDto, "Admin");
-        }
-
-        public async Task<Usuario?> RegisterUser(RegisterDTO registerDto)
-        {
-            return await Register(registerDto, "User");
-        }
-
-        private async Task<Usuario?> Register(RegisterDTO registerDto, string rol)
+        public async Task<Usuario?> CreateAsync(RegisterDTO registerDto, string rol)
         {
             try
             {
