@@ -10,7 +10,7 @@ import { LoginRequest, RegisterRequest, LoginResponse, RegisterResponse, UserInf
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'https://backend-service-java-2-616328447495.us-central1.run.app';
+  private baseUrl = 'https://backend-service-java-2-616328447495.us-central1.run.app/api';
   private tokenKey = 'auth_token';
   private userInfoKey = 'user_info';
   
@@ -35,15 +35,18 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    // Mapear contrasena a Contraseña para el backend (usando notación de corchetes para caracteres especiales)
-    const backendData: any = {
-      cedula: credentials.cedula
+    // ✅ ADAPTADO: El servicio Java espera username y password
+    const backendData = {
+      username: credentials.cedula,  // Enviar cedula como username
+      password: credentials.contrasena  // Enviar sin ñ
     };
-    backendData['contraseña'] = credentials.contrasena; // Usar notación de corchetes para la ñ
+    
     return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, backendData).pipe(
       tap(response => {
-        this.setToken(response.token);
-        this.decodeAndStoreUserInfo(response.token);
+        // El servicio Java retorna accessToken en lugar de token
+        const token = (response as any).accessToken || response.token;
+        this.setToken(token);
+        this.decodeAndStoreUserInfo(token);
       })
     );
   }
@@ -76,12 +79,12 @@ export class AuthService {
 
   isAdmin(): boolean {
     const userInfo = this.getUserInfo();
-    return userInfo?.rol === 'Admin';
+    return userInfo?.rol === 'Admin' || userInfo?.rol === 'MANAGER';  // ✅ Agregar MANAGER
   }
 
   isUser(): boolean {
     const userInfo = this.getUserInfo();
-    return userInfo?.rol === 'User';
+    return userInfo?.rol === 'User' || userInfo?.rol === 'EMPLOYEE';  // ✅ Agregar EMPLOYEE
   }
 
   getCurrentUser(): UserInfo | null {
@@ -111,15 +114,22 @@ export class AuthService {
       const payload = token.split('.')[1];
       const decodedPayload = JSON.parse(atob(payload));
       
-      const idLocal = decodedPayload.IdLocal || decodedPayload.idLocal;
+      // ✅ Adaptado para el token del servicio Java
+      const idLocal = decodedPayload.plazaId || decodedPayload.IdLocal || decodedPayload.idLocal;
+      const username = decodedPayload.sub || decodedPayload.username;
+      
+      // Extraer roles del token Java (puede venir como array)
+      let rol = 'User';
+      if (decodedPayload.roles && Array.isArray(decodedPayload.roles)) {
+        rol = decodedPayload.roles[0]; // Tomar el primer rol
+      } else if (decodedPayload.role) {
+        rol = decodedPayload.role;
+      }
       
       const userInfo: UserInfo = {
-        cedula: decodedPayload.Cedula || decodedPayload.cedula,
-        rol: decodedPayload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 
-             decodedPayload.role || 
-             decodedPayload.Rol || 
-             decodedPayload.rol,
-        idLocal: idLocal ? parseInt(idLocal, 10) : undefined
+        cedula: username || decodedPayload.Cedula || decodedPayload.cedula,
+        rol: rol,
+        idLocal: idLocal ? parseInt(idLocal.toString(), 10) : undefined
       };
       
       localStorage.setItem(this.userInfoKey, JSON.stringify(userInfo));
