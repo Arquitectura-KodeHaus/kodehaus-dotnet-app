@@ -1,52 +1,132 @@
-using backend.Services;
-using backend.Services.Interfaces;
-using backend.Services.Implementations;
-using backend.Context;
-using Microsoft.EntityFrameworkCore;
+import { Component, OnInit } from '@angular/core';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+import { Inventario } from '../../models/local.model';
 
-var builder = WebApplication.CreateBuilder(args);
+@Component({
+  selector: 'app-inventarios',
+  templateUrl: './inventarios.component.html',
+  styleUrls: ['./inventarios.component.css']
+})
+export class InventariosComponent implements OnInit {
+  inventarios: Inventario[] = [];
+  inventarioSeleccionado: Inventario | null = null;
+  modoEdicion = false;
+  mostrarFormulario = false;
 
-// Configurar la cadena de conexión
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+  nuevoInventario: Inventario = {
+    id: 0,
+    idLocal: 0,
+    idProductoCatalogo: 0,
+    precioUnitario: 0,
+    stock: 0
+  };
 
-// Registrar servicios
-builder.Services.AddScoped<ILocalService, LocalService>();
-builder.Services.AddScoped<IInventarioService, InventarioService>();
-builder.Services.AddScoped<IVentaService, VentaService>();
-builder.Services.AddDbContext<AppDbContext>(options => 
-    options.UseNpgsql(connectionString));
+  estadisticas = {
+    totalProductos: 0,
+    valorTotal: 0,
+    stockBajo: 0,
+    stockAgotado: 0
+  };
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+  constructor(
+    private apiService: ApiService,
+    private authService: AuthService
+  ) {}
 
-// ✅ CONFIGURAR CORS - Agregar ANTES de builder.Build()
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAngular", policy =>
-    {
-        policy.WithOrigins(
-                "http://localhost:4200",  // Desarrollo local
-                "https://kodehaus-frontend-dotnet-616328447495.us-central1.run.app"  // Producción
-              )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+  ngOnInit(): void {
+    this.cargarInventarios();
+  }
+
+  cargarInventarios(): void {
+    this.apiService.getInventarios().subscribe({
+      next: (data) => {
+        // Si el usuario no es Admin, filtrar por su local
+        if (!this.authService.isAdmin()) {
+          const userLocalId = this.authService.getUserLocalId();
+          if (userLocalId) {
+            this.inventarios = data.filter(inv => inv.idLocal === userLocalId);
+          } else {
+            this.inventarios = [];
+          }
+        } else {
+          this.inventarios = data;
+        }
+        this.calcularEstadisticas();
+      },
+      error: (error) => console.error('Error cargando inventarios:', error)
     });
-});
+  }
 
-var app = builder.Build();
+  calcularEstadisticas(): void {
+    this.estadisticas.totalProductos = this.inventarios.length;
+    this.estadisticas.valorTotal = this.inventarios.reduce(
+      (sum, inv) => sum + (inv.precioUnitario * inv.stock), 0
+    );
+    this.estadisticas.stockBajo = this.inventarios.filter(inv => inv.stock < 10 && inv.stock > 0).length;
+    this.estadisticas.stockAgotado = this.inventarios.filter(inv => inv.stock === 0).length;
+  }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  mostrarFormularioCrear(): void {
+    this.modoEdicion = false;
+    const userLocalId = this.authService.getUserLocalId();
+    this.nuevoInventario = {
+      id: 0,
+      idLocal: userLocalId || 0,
+      idProductoCatalogo: 0,
+      precioUnitario: 0,
+      stock: 0
+    };
+    this.mostrarFormulario = true;
+  }
+
+  mostrarFormularioEditar(inventario: Inventario): void {
+    this.modoEdicion = true;
+    this.inventarioSeleccionado = inventario;
+    this.nuevoInventario = { ...inventario };
+    this.mostrarFormulario = true;
+  }
+
+  guardarInventario(): void {
+    if (this.modoEdicion && this.inventarioSeleccionado) {
+      this.apiService.actualizarInventario(this.inventarioSeleccionado.id, this.nuevoInventario).subscribe({
+        next: () => {
+          this.cargarInventarios();
+          this.cancelarFormulario();
+        },
+        error: (error: any) => console.error('Error actualizando inventario:', error)
+      });
+    } else {
+      this.apiService.crearInventario(this.nuevoInventario).subscribe({
+        next: () => {
+          this.cargarInventarios();
+          this.cancelarFormulario();
+        },
+        error: (error: any) => console.error('Error creando inventario:', error)
+      });
+    }
+  }
+
+  eliminarInventario(id: number): void {
+    if (confirm('¿Estás seguro de que quieres eliminar este inventario?')) {
+      this.apiService.eliminarInventario(id).subscribe({
+        next: () => {
+          this.cargarInventarios();
+        },
+        error: (error: any) => console.error('Error eliminando inventario:', error)
+      });
+    }
+  }
+
+  cancelarFormulario(): void {
+    this.mostrarFormulario = false;
+    this.inventarioSeleccionado = null;
+    this.modoEdicion = false;
+  }
+
+  obtenerStockClass(stock: number): string {
+    if (stock === 0) return 'stock-agotado';
+    if (stock < 10) return 'stock-bajo';
+    return 'stock-normal';
+  }
 }
-
-// ✅ USAR CORS - Debe ir ANTES de UseAuthorization()
-app.UseCors("AllowAngular");
-
-app.UseAuthorization();
-app.MapControllers();
-
-app.Run();

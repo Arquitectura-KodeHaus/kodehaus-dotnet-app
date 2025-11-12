@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Context;
@@ -11,9 +12,11 @@ using backend.Context;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251111231051_FixUsuarioTable")]
+    partial class FixUsuarioTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -97,9 +100,6 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("IdLocal")
-                        .HasColumnType("integer");
-
                     b.Property<string>("NombreUsuario")
                         .IsRequired()
                         .HasColumnType("text");
@@ -109,8 +109,6 @@ namespace backend.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("IdLocal");
 
                     b.ToTable("Usuarios");
                 });
@@ -171,17 +169,6 @@ namespace backend.Migrations
                     b.Navigation("Local");
                 });
 
-            modelBuilder.Entity("backend.Models.Usuario", b =>
-                {
-                    b.HasOne("backend.Models.Local", "Local")
-                        .WithMany("Usuarios")
-                        .HasForeignKey("IdLocal")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Local");
-                });
-
             modelBuilder.Entity("backend.Models.Venta", b =>
                 {
                     b.HasOne("backend.Models.Local", "Local")
@@ -220,8 +207,6 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.Local", b =>
                 {
                     b.Navigation("Inventarios");
-
-                    b.Navigation("Usuarios");
 
                     b.Navigation("Ventas");
                 });

@@ -1,9 +1,33 @@
 <div class="inventarios-container">
-  <div class="header">
-    <h1>Gestión de Inventarios</h1>
-    <button class="btn-primary" (click)="mostrarFormularioCrear()">
+  <div class="toolbar">
+    <h1>📦 Gestión de Inventarios</h1>
+    <button class="btn" (click)="mostrarFormularioCrear()">
       <span>+</span> Nuevo Producto
     </button>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>Total Productos</h4>
+      <div class="value">{{ estadisticas.totalProductos }}</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h4>Valor Total</h4>
+      <div class="value">${{ estadisticas.valorTotal | number:'1.2-2' }}</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚠️</div>
+      <h4>Stock Bajo</h4>
+      <div class="value">{{ estadisticas.stockBajo }}</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🚫</div>
+      <h4>Stock Agotado</h4>
+      <div class="value">{{ estadisticas.stockAgotado }}</div>
+    </div>
   </div>
 
   <!-- Formulario Modal -->
@@ -16,13 +40,16 @@
       
       <form class="form" (ngSubmit)="guardarInventario()">
         <div class="form-group">
-          <label for="idLocal">Local</label>
-          <select id="idLocal" [(ngModel)]="nuevoInventario.idLocal" name="idLocal" required>
-            <option value="">Seleccionar local</option>
-            <option *ngFor="let local of locales" [value]="local.id">
-              {{ local.nombre }} ({{ local.numeroLocal }})
-            </option>
-          </select>
+          <label for="idLocal">ID del Local</label>
+          <input 
+            type="number" 
+            id="idLocal" 
+            [(ngModel)]="nuevoInventario.idLocal" 
+            name="idLocal"
+            required
+            placeholder="Ej: 1"
+            min="1"
+          >
         </div>
 
         <div class="form-group">
@@ -66,7 +93,7 @@
           <button type="button" class="btn-secondary" (click)="cancelarFormulario()">
             Cancelar
           </button>
-          <button type="submit" class="btn-primary">
+          <button type="submit" class="btn">
             {{ modoEdicion ? 'Actualizar' : 'Crear' }}
           </button>
         </div>
@@ -86,8 +113,8 @@
       
       <div class="inventario-info">
         <div class="info-item">
-          <span class="label">Local:</span>
-          <span class="value">{{ obtenerNombreLocal(inventario.idLocal) }}</span>
+          <span class="label">Local ID:</span>
+          <span class="value">#{{ inventario.idLocal }}</span>
         </div>
         <div class="info-item">
           <span class="label">Precio:</span>
@@ -100,11 +127,11 @@
       </div>
 
       <div class="inventario-actions">
-        <button class="btn-edit" (click)="mostrarFormularioEditar(inventario)">
-          <span>✏️</span> Editar
+        <button (click)="mostrarFormularioEditar(inventario)" title="Editar">
+          ✏️
         </button>
-        <button class="btn-delete" (click)="eliminarInventario(inventario.id)">
-          <span>🗑️</span> Eliminar
+        <button (click)="eliminarInventario(inventario.id)" title="Eliminar">
+          🗑️
         </button>
       </div>
     </div>
@@ -115,7 +142,7 @@
     <div class="empty-icon">📦</div>
     <h3>No hay productos en inventario</h3>
     <p>Agrega productos para comenzar a gestionar tu inventario</p>
-    <button class="btn-primary" (click)="mostrarFormularioCrear()">
+    <button class="btn" (click)="mostrarFormularioCrear()">
       <span>+</span> Agregar Primer Producto
     </button>
   </div>

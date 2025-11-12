@@ -1,8 +1,13 @@
 using backend.Context;
+using backend.Custom;
 using backend.Services;
 using backend.Services.Implementations;
 using backend.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +25,7 @@ builder.Services.AddScoped<ILocalService, LocalService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IVentaService, VentaService>();
 builder.Services.AddScoped<IDataService, DataService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 // ✅ NUEVO: HttpClient para llamadas a otros servicios
 builder.Services.AddHttpClient();
 
@@ -27,8 +33,41 @@ builder.Services.AddHttpClient();
 builder.Services.AddDbContext<AppDbContext>(options => 
     options.UseNpgsql(connectionString));
 
+builder.Services.AddSingleton<Utils>();
+
+builder.Services.AddAuthentication(config =>
+{
+    config.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    config.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(config =>
+{
+    config.RequireHttpsMetadata = false;
+    config.SaveToken = true;
+    config.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
+
+builder.Services.AddAuthorization(Options =>
+{
+    Options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    Options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+});
+
 // Controllers and API
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configurar JSON para usar camelCase (estándar en APIs REST)
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -51,7 +90,7 @@ else
     {
         options.AddPolicy("AllowFrontend", policy =>
         {
-            policy.WithOrigins("http://localhost:4200")
+            policy.WithOrigins("http://localhost:53490")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -86,11 +125,15 @@ using (var scope = app.Services.CreateScope())
 app.UseSwagger();
 app.UseSwaggerUI();
 
+
 // DO NOT use HTTPS redirection in Cloud Run (handled by load balancer)
 // app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
 // CRITICAL: CORS must be before UseAuthorization
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

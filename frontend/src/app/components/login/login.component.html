@@ -1,0 +1,102 @@
+<div class="login-container">
+  <div class="login-wrapper">
+    <!-- Sección izquierda con información -->
+    <div class="login-info">
+      <div class="info-content">
+        <div class="logo-large">🏪</div>
+        <h1>Bienvenido a Plazapp</h1>
+        <p class="subtitle">Sistema de Gestión de Inventarios y Ventas</p>
+        
+        <div class="features">
+          <div class="feature-item">
+            <span class="feature-icon">📦</span>
+            <div>
+              <h3>Gestión de Inventarios</h3>
+              <p>Controla tu stock y productos de manera eficiente</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <span class="feature-icon">💰</span>
+            <div>
+              <h3>Registro de Ventas</h3>
+              <p>Gestiona y monitorea todas tus transacciones</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <span class="feature-icon">👥</span>
+            <div>
+              <h3>Gestión de Empleados</h3>
+              <p>Administra tu equipo de trabajo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección derecha con formulario -->
+    <div class="login-form-section">
+      <div class="login-card">
+        <div class="login-header">
+          <h2>Iniciar Sesión</h2>
+          <p>Ingresa tus credenciales para continuar</p>
+        </div>
+
+        <form (ngSubmit)="onSubmit()" class="login-form">
+          <div class="form-row">
+            <label for="cedula">
+              <span class="label-icon">🆔</span>
+              Cédula
+            </label>
+            <input
+              type="text"
+              id="cedula"
+              [(ngModel)]="loginData.cedula"
+              name="cedula"
+              required
+              placeholder="Ingresa tu cédula"
+              class="input"
+            >
+          </div>
+
+          <div class="form-row">
+            <label for="contrasena">
+              <span class="label-icon">🔒</span>
+              Contraseña
+            </label>
+            <input
+              type="password"
+              id="contrasena"
+              [(ngModel)]="loginData.contrasena"
+              name="contrasena"
+              required
+              placeholder="Ingresa tu contraseña"
+              class="input"
+            >
+          </div>
+
+          <div *ngIf="errorMessage" class="error-message">
+            <span class="error-icon">⚠️</span>
+            {{ errorMessage }}
+          </div>
+
+          <button type="submit" class="btn login-button" [disabled]="isLoading">
+            <span *ngIf="!isLoading">
+              <span class="button-icon">🚀</span>
+              Iniciar Sesión
+            </span>
+            <span *ngIf="isLoading">
+              <span class="spinner"></span>
+              Cargando...
+            </span>
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <p>¿Necesitas ayuda? Contacta al administrador</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
