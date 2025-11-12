@@ -1,0 +1,99 @@
+<div class="usuarios-container">
+  <div class="toolbar">
+    <h1>👥 Gestión de Usuarios</h1>
+    <button class="btn" (click)="mostrarFormularioCrear()">
+      <span>+</span> Nuevo Usuario
+    </button>
+  </div>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <!-- Formulario Modal -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarFormulario()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Nuevo Usuario</h2>
+        <button class="btn-close" (click)="cancelarFormulario()">&times;</button>
+      </div>
+      
+      <form (ngSubmit)="guardarUsuario()">
+        <div class="form-row">
+          <label for="nombreUsuario">Nombre de Usuario</label>
+          <input 
+            type="text" 
+            id="nombreUsuario" 
+            [(ngModel)]="nuevoUsuario.nombreUsuario" 
+            name="nombreUsuario"
+            required
+            placeholder="Ej: Juan Pérez"
+            class="input"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="cedula">Cédula</label>
+          <input 
+            type="text" 
+            id="cedula" 
+            [(ngModel)]="nuevoUsuario.cedula" 
+            name="cedula"
+            required
+            placeholder="Ej: 1234567890"
+            class="input"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="contrasena">Contraseña</label>
+          <input 
+            type="password" 
+            id="contrasena" 
+            [(ngModel)]="nuevoUsuario.contrasena" 
+            name="contrasena"
+            required
+            placeholder="Contraseña del usuario"
+            class="input"
+            minlength="6"
+          >
+        </div>
+
+        <div class="form-row">
+          <label for="idLocal">Local</label>
+          <select
+            id="idLocal"
+            [(ngModel)]="nuevoUsuario.idLocal"
+            name="idLocal"
+            required
+            class="input"
+          >
+            <option value="0" disabled>Selecciona un local</option>
+            <option *ngFor="let local of locales" [value]="local.id">
+              {{ local.nombre }} ({{ local.numeroLocal }})
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelarFormulario()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="isLoading">
+            <span *ngIf="!isLoading">Crear Usuario</span>
+            <span *ngIf="isLoading">Creando...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p>💡 <strong>Nota:</strong> Los usuarios creados desde aquí tendrán el rol "User" por defecto. Solo los administradores pueden crear usuarios.</p>
+  </div>
+</div>
+

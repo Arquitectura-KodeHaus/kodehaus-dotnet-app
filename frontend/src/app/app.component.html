@@ -1,35 +1,59 @@
 <div class="app">
-  <!-- Sidebar -->
-  <nav class="sidebar">
-    <div class="logo">🏪 Plazapp</div>
-    
-    <div class="nav">
-      <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-        <span class="nav-icon">📊</span>
-        Dashboard
-      </a>
+  <ng-container *ngIf="!isLoginPage">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="logo">🏪 Plazapp</div>
       
-      <a routerLink="/locales" routerLinkActive="active">
-        <span class="nav-icon">🏢</span>
-        Gestión de Locales
-      </a>
-      
-      <a routerLink="/operaciones" routerLinkActive="active">
-        <span class="nav-icon">⚙️</span>
-        Operaciones
-      </a>
-    </div>
-  </nav>
+      <div class="nav">
+        <a routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </a>
+        
+        <a routerLink="/inventarios" routerLinkActive="active">
+          <span class="nav-icon">📦</span>
+          Inventarios
+        </a>
+        
+        <a routerLink="/ventas" routerLinkActive="active">
+          <span class="nav-icon">💰</span>
+          Ventas
+        </a>
+        
+        <a *ngIf="isAdmin()" routerLink="/empleados" routerLinkActive="active">
+          <span class="nav-icon">👥</span>
+          Empleados
+        </a>
+        
+        <a *ngIf="isAdmin()" routerLink="/usuarios" routerLinkActive="active">
+          <span class="nav-icon">👤</span>
+          Usuarios
+        </a>
+      </div>
+    </nav>
 
-  <!-- Header -->
-  <header class="header">
-    <div class="avatar"></div>
-  </header>
+    <!-- Header -->
+    <header class="header">
+      <div class="header-info">
+        <div class="user-info" *ngIf="currentUser">
+          <span class="user-name">{{ currentUser.cedula }}</span>
+          <span class="user-role">{{ currentUser.rol }}</span>
+        </div>
+        <button class="logout-button" (click)="logout()">
+          🚪 Cerrar Sesión
+        </button>
+      </div>
+    </header>
 
-  <!-- Main Content -->
-  <main class="container">
-    <div class="content">
-      <router-outlet></router-outlet>
-    </div>
-  </main>
+    <!-- Main Content -->
+    <main class="container">
+      <div class="content">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </ng-container>
+
+  <ng-container *ngIf="isLoginPage">
+    <router-outlet></router-outlet>
+  </ng-container>
 </div>

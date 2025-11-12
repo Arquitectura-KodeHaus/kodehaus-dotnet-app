@@ -30,7 +30,8 @@ namespace backend.Custom
             var claims = new[]
             {
                 new Claim("Cedula", modelo.Cedula),
-                new Claim(ClaimTypes.Role, modelo.Rol)
+                new Claim(ClaimTypes.Role, modelo.Rol),
+                new Claim("IdLocal", modelo.IdLocal.ToString())
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));

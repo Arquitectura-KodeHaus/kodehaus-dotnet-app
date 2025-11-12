@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
-import { Empleado, Local } from '../../models/local.model';
+import { AuthService } from '../../services/auth.service';
+import { Empleado } from '../../models/local.model';
 
 @Component({
   selector: 'app-empleados',
@@ -9,7 +10,6 @@ import { Empleado, Local } from '../../models/local.model';
 })
 export class EmpleadosComponent implements OnInit {
   empleados: Empleado[] = [];
-  locales: Local[] = [];
   empleadoSeleccionado: Empleado | null = null;
   modoEdicion = false;
   mostrarFormulario = false;
@@ -21,38 +21,57 @@ export class EmpleadosComponent implements OnInit {
     localId: 0
   };
 
-  constructor(private apiService: ApiService) {}
+  estadisticas = {
+    totalEmpleados: 0,
+    porCargo: {} as { [key: string]: number }
+  };
+
+  constructor(
+    private apiService: ApiService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.cargarEmpleados();
-    this.cargarLocales();
   }
 
   cargarEmpleados(): void {
     this.apiService.getEmpleados().subscribe({
-      next: (data) => {
-        this.empleados = data;
+      next: (data: Empleado[]) => {
+        // Si el usuario no es Admin, filtrar por su local
+        if (!this.authService.isAdmin()) {
+          const userLocalId = this.authService.getUserLocalId();
+          if (userLocalId) {
+            this.empleados = data.filter(emp => emp.localId === userLocalId);
+          } else {
+            this.empleados = [];
+          }
+        } else {
+          this.empleados = data;
+        }
+        this.calcularEstadisticas();
       },
-      error: (error) => console.error('Error cargando empleados:', error)
+      error: (error: any) => console.error('Error cargando empleados:', error)
     });
   }
 
-  cargarLocales(): void {
-    this.apiService.getLocales().subscribe({
-      next: (data) => {
-        this.locales = data;
-      },
-      error: (error) => console.error('Error cargando locales:', error)
+  calcularEstadisticas(): void {
+    this.estadisticas.totalEmpleados = this.empleados.length;
+    this.estadisticas.porCargo = {};
+    
+    this.empleados.forEach(emp => {
+      this.estadisticas.porCargo[emp.cargo] = (this.estadisticas.porCargo[emp.cargo] || 0) + 1;
     });
   }
 
   mostrarFormularioCrear(): void {
     this.modoEdicion = false;
+    const userLocalId = this.authService.getUserLocalId();
     this.nuevoEmpleado = {
       id: 0,
       nombre: '',
       cargo: '',
-      localId: 0
+      localId: userLocalId || 0
     };
     this.mostrarFormulario = true;
   }
@@ -71,7 +90,7 @@ export class EmpleadosComponent implements OnInit {
           this.cargarEmpleados();
           this.cancelarFormulario();
         },
-        error: (error) => console.error('Error actualizando empleado:', error)
+        error: (error: any) => console.error('Error actualizando empleado:', error)
       });
     } else {
       this.apiService.crearEmpleado(this.nuevoEmpleado).subscribe({
@@ -79,7 +98,7 @@ export class EmpleadosComponent implements OnInit {
           this.cargarEmpleados();
           this.cancelarFormulario();
         },
-        error: (error) => console.error('Error creando empleado:', error)
+        error: (error: any) => console.error('Error creando empleado:', error)
       });
     }
   }
@@ -90,7 +109,7 @@ export class EmpleadosComponent implements OnInit {
         next: () => {
           this.cargarEmpleados();
         },
-        error: (error) => console.error('Error eliminando empleado:', error)
+        error: (error: any) => console.error('Error eliminando empleado:', error)
       });
     }
   }
@@ -101,18 +120,17 @@ export class EmpleadosComponent implements OnInit {
     this.modoEdicion = false;
   }
 
-  obtenerNombreLocal(localId: number): string {
-    const local = this.locales.find(l => l.id === localId);
-    return local ? local.nombre : `Local ${localId}`;
-  }
-
   obtenerCargoClass(cargo: string): string {
     switch (cargo.toLowerCase()) {
-      case 'gerente': return 'cargo-gerente';
-      case 'vendedor': return 'cargo-vendedor';
-      case 'cajero': return 'cargo-cajero';
-      case 'supervisor': return 'cargo-supervisor';
-      default: return 'cargo-default';
+      case 'gerente': return 'status-active';
+      case 'supervisor': return 'status-maintenance';
+      case 'vendedor': return 'status-active';
+      case 'cajero': return 'status-maintenance';
+      default: return 'status-active';
     }
+  }
+
+  getCargos(): string[] {
+    return Object.keys(this.estadisticas.porCargo);
   }
 }

@@ -17,24 +17,35 @@ namespace backend.Services.Implementations
             _utils = utils;
         }
 
-        public async Task<Usuario> CreateAsync(RegisterDTO usuario, String rol)
+        public async Task<Usuario> CreateAsync(RegisterDTO usuario, string rol)
         {
             var exists = await _context.Usuarios.AnyAsync(u => u.Cedula == usuario.Cedula);
             if (exists)
             {
                 throw new Exception("Ya existe un usuario con esa cédula.");
             }
+
+            var localExists = await _context.Locales.AnyAsync(l => l.Id == usuario.IdLocal);
+            if (!localExists)
+            {
+                throw new Exception("El local asignado no existe.");
+            }
+
             var newUser = new Usuario
             {
                 NombreUsuario = usuario.NombreUsuario,
                 Contraseña = _utils.encryptPassword(usuario.Contraseña),
                 Cedula = usuario.Cedula,
-                Rol = rol
+                Rol = rol,
+                IdLocal = usuario.IdLocal
             };
+
             _context.Usuarios.Add(newUser);
             await _context.SaveChangesAsync();
+
             return newUser;
         }
+
 
         public async Task<string?> LoginAsync(LoginDTO login)
         {

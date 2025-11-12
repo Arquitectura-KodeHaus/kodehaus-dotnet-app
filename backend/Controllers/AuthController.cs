@@ -47,6 +47,7 @@ namespace backend.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("register/user")]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterDTO model)
         {

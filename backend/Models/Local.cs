@@ -10,4 +10,5 @@ public class Local
     public string Estado { get; set; } = string.Empty;
     public ICollection<Venta>? Ventas { get; set; }
     public ICollection<Inventario>? Inventarios { get; set; }
+    public ICollection<Usuario>? Usuarios { get; set; }
 }

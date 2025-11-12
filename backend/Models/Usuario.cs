@@ -1,4 +1,7 @@
-﻿namespace backend.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
+namespace backend.Models
 {
     public class Usuario
     {
@@ -7,6 +10,11 @@
         public string Contraseña { get; set; } = string.Empty;
         public string Cedula { get; set; } = string.Empty;
         public string Rol { get; set; } = string.Empty;
+        public int IdLocal { get; set; }
+
+        [ForeignKey(nameof(IdLocal))]
+        [JsonIgnore]
+        public Local? Local { get; set; }
 
     }
 }

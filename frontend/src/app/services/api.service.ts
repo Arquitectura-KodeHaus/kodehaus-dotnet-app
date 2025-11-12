@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';  
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment.prod';
+import { environment } from '../../environments/environment';
 
 export interface SampleModel {
   id: number;
@@ -17,41 +17,14 @@ export class ApiService {
 
   constructor(private http: HttpClient) {}
 
-  getSampleData(): Observable<SampleModel[]> {
-    return this.http.get<SampleModel[]>(`${this.baseUrl}/api`);
-  }
+  // Método de ejemplo - no se usa actualmente
+  // getSampleData(): Observable<SampleModel[]> {
+  //   return this.http.get<SampleModel[]>(`${this.baseUrl}/api`);
+  // }
 
   // ========== LOCALES ==========
   getLocales(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/locales`);
-  }
-
-  getLocal(id: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/locales/${id}`);
-  }
-
-  createLocal(local: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/locales`, local);
-  }
-
-  crearLocal(local: any): Observable<any> {
-    return this.createLocal(local);
-  }
-
-  updateLocal(id: number, local: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/locales/${id}`, local);
-  }
-
-  actualizarLocal(id: number, local: any): Observable<any> {
-    return this.updateLocal(id, local);
-  }
-
-  deleteLocal(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/locales/${id}`);
-  }
-
-  eliminarLocal(id: number): Observable<any> {
-    return this.deleteLocal(id);
   }
 
   // ========== INVENTARIOS ==========

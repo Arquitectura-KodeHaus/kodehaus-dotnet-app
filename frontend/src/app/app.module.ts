@@ -1,38 +1,42 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
-import { LocalesComponent } from './components/locales/locales.component';
-import { OperacionesComponent } from './components/operaciones/operaciones.component';
-import { InventariosLocalComponent } from './components/operaciones/inventarios-local/inventarios-local.component';
-import { VentasLocalComponent } from './components/operaciones/ventas-local/ventas-local.component';
-import { EmpleadosLocalComponent } from './components/operaciones/empleados-local/empleados-local.component';
+import { LoginComponent } from './components/login/login.component';
+import { UsuariosComponent } from './components/usuarios/usuarios.component';
+import { InventariosComponent } from './components/inventarios/inventarios.component';
+import { VentasComponent } from './components/ventas/ventas.component';
+import { EmpleadosComponent } from './components/empleados/empleados.component';
+
+import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { AuthGuard } from './guards/auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
-  { path: '', component: DashboardComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'locales', component: LocalesComponent },
-  { path: 'operaciones', component: OperacionesComponent },
-  { path: 'operaciones/inventarios', component: InventariosLocalComponent },
-  { path: 'operaciones/ventas', component: VentasLocalComponent },
-  { path: 'operaciones/empleados', component: EmpleadosLocalComponent },
-  { path: '**', redirectTo: '' }
+  { path: 'login', component: LoginComponent },
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
+  { path: 'inventarios', component: InventariosComponent, canActivate: [AuthGuard] },
+  { path: 'ventas', component: VentasComponent, canActivate: [AuthGuard] },
+  { path: 'empleados', component: EmpleadosComponent, canActivate: [AuthGuard, AdminGuard] },
+  { path: 'usuarios', component: UsuariosComponent, canActivate: [AuthGuard, AdminGuard] },
+  { path: '**', redirectTo: '/dashboard' }
 ];
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
-    LocalesComponent,
-    OperacionesComponent,
-    InventariosLocalComponent,
-    VentasLocalComponent,
-    EmpleadosLocalComponent
+    LoginComponent,
+    UsuariosComponent,
+    InventariosComponent,
+    VentasComponent,
+    EmpleadosComponent
   ],
   imports: [
     BrowserModule,
@@ -41,7 +45,13 @@ const routes: Routes = [
     FormsModule,
     RouterModule.forRoot(routes)
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

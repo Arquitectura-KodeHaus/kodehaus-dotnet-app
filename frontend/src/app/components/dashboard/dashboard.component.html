@@ -7,12 +7,6 @@
   <!-- Estadísticas principales -->
   <div class="cards">
     <div class="card">
-      <div class="card-icon">🏪</div>
-      <h4>Locales Activos</h4>
-      <div class="value">{{ estadisticas.totalLocales }}</div>
-    </div>
-
-    <div class="card">
       <div class="card-icon">📦</div>
       <h4>Productos en Inventario</h4>
       <div class="value">{{ estadisticas.totalInventarios }}</div>
@@ -24,7 +18,7 @@
       <div class="value">{{ estadisticas.totalVentas }}</div>
     </div>
 
-    <div class="card">
+    <div class="card" *ngIf="isAdmin()">
       <div class="card-icon">👥</div>
       <h4>Empleados</h4>
       <div class="value">{{ estadisticas.totalEmpleados }}</div>
@@ -48,12 +42,12 @@
     <div class="legend">
       <h3>Acciones Rápidas</h3>
       <div class="item">
-        <span>🏢</span>
-        <a routerLink="/locales" class="btn">Gestionar Locales</a>
+        <span>📦</span>
+        <a routerLink="/inventarios" class="btn">Gestionar Inventarios</a>
       </div>
       <div class="item">
-        <span>⚙️</span>
-        <a routerLink="/operaciones" class="btn">Ver Operaciones</a>
+        <span>💰</span>
+        <a routerLink="/ventas" class="btn">Gestionar Ventas</a>
       </div>
     </div>
   </div>
@@ -75,7 +69,7 @@
           <tr *ngFor="let venta of ventas.slice(0, 5)">
             <td><span class="status active">Venta</span></td>
             <td>Total: ${{ venta.total | number:'1.2-2' }}</td>
-            <td>Local #{{ venta.idLocal }}</td>
+            <td>Local ID: {{ venta.idLocal }}</td>
             <td>{{ venta.fecha | date:'short' }}</td>
           </tr>
         </tbody>

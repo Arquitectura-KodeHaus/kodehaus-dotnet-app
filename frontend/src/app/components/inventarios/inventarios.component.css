@@ -1,37 +1,17 @@
 .inventarios-container {
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 20px;
 }
 
-.header {
+.toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
 }
 
-.header h1 {
-  color: #2c3e50;
+.toolbar h1 {
   margin: 0;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: transform 0.2s ease;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
+  color: var(--primary-dark);
 }
 
 .btn-secondary {
@@ -49,30 +29,19 @@
   background: #5a6268;
 }
 
-.btn-edit {
-  background: #17a2b8;
-  color: white;
+.inventario-actions button {
+  margin-right: 8px;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
-.btn-delete {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.9rem;
+.inventario-actions button:hover {
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .btn-close {
@@ -143,6 +112,7 @@
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
@@ -163,6 +133,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  margin-top: 20px;
 }
 
 .inventario-card {
@@ -230,11 +201,6 @@
   color: #2c3e50;
 }
 
-.inventario-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 /* Estado vacío */
 .empty-state {
   text-align: center;
@@ -262,12 +228,6 @@
 @media (max-width: 768px) {
   .inventarios-container {
     padding: 1rem;
-  }
-  
-  .header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
   }
   
   .inventarios-grid {
