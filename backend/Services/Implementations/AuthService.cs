@@ -1,117 +1,90 @@
-﻿using backend.Custom;
+﻿using backend.Context;
+using backend.Custom;
 using backend.Models;
 using backend.Models.DTOs;
 using backend.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using backend.Context;
+using System.Text;
+using System.Text.Json;
 
 namespace backend.Services.Implementations
 {
-    public class AuthService : IAuthService
+    public class AuthService: IAuthService
     {
         private readonly AppDbContext _context;
         private readonly Utils _utils;
-        private readonly ILogger<AuthService> _logger;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(AppDbContext context, Utils utils, ILogger<AuthService> logger)
+        public AuthService(AppDbContext context, Utils utils, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _utils = utils;
-            _logger = logger;
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
-        public async Task<Usuario?> LoginAsync(LoginDTO loginDto)
+        public async Task<Usuario> CreateAsync(RegisterDTO usuario, string rol)
+        {
+            var exists = await _context.Usuarios.AnyAsync(u => u.Cedula == usuario.Cedula);
+            if (exists)
+            {
+                throw new Exception("Ya existe un usuario con esa cédula.");
+            }
+
+            var localExists = await _context.Locales.AnyAsync(l => l.Id == usuario.IdLocal);
+            if (!localExists)
+            {
+                throw new Exception("El local asignado no existe.");
+            }
+
+            var newUser = new Usuario
+            {
+                NombreUsuario = usuario.NombreUsuario,
+                Contrasena = _utils.encryptPassword(usuario.Contrasena),
+                Cedula = usuario.Cedula,
+                Rol = rol,
+                IdLocal = usuario.IdLocal
+            };
+
+            _context.Usuarios.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            return newUser;
+        }
+
+
+        public async Task<string?> LoginAsync(LoginDTO login)
         {
             try
             {
-                _logger.LogInformation("🔐 Login attempt for Cedula: {Cedula}", loginDto.Cedula);
-                
-                // Encriptar la contraseña recibida
-                var passwordEncriptada = _utils.encriptarSHA256(loginDto.Contrasena);
-                _logger.LogInformation("🔑 Password hash generated: {Hash}", passwordEncriptada?.Substring(0, 20) + "...");
+                var gestionPlazasUrl = _configuration["ServiceUrls:GestionPlazasUrl"];
+                var loginUrl = $"{gestionPlazasUrl}/api/auth/login";
 
-                // Buscar usuario por cédula
-                var usuario = await _context.Usuarios
-                    .Include(u => u.Local)
-                    .FirstOrDefaultAsync(u => u.Cedula == loginDto.Cedula);
+                var jsonContent = JsonSerializer.Serialize(login);
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                if (usuario == null)
-                {
-                    _logger.LogWarning("❌ User not found for Cedula: {Cedula}", loginDto.Cedula);
+                var response = await _httpClient.PostAsync(loginUrl, content);
+
+                if (!response.IsSuccessStatusCode)
                     return null;
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
+
+                // Extraer el token de la respuesta
+                if (jsonResponse.TryGetProperty("token", out var tokenElement))
+                {
+                    return tokenElement.GetString();
                 }
 
-                _logger.LogInformation("👤 User found: {Username}, Role: {Role}", usuario.NombreUsuario, usuario.Rol);
-                _logger.LogInformation("🔑 Stored hash: {Hash}", usuario.Contrasena?.Substring(0, 20) + "...");
-
-                // Comparar contraseñas
-                if (usuario.Contrasena == passwordEncriptada)
-                {
-                    _logger.LogInformation("✅ Login successful for user: {Username}", usuario.NombreUsuario);
-                    return usuario;
-                }
-                else
-                {
-                    _logger.LogWarning("❌ Password mismatch for user: {Username}", usuario.NombreUsuario);
-                    return null;
-                }
+                return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _logger.LogError(ex, "💥 Error during login for Cedula: {Cedula}", loginDto.Cedula);
-                throw;
+                return null;
             }
         }
 
-        public async Task<Usuario?> CreateAsync(RegisterDTO registerDto, string rol)
-        {
-            try
-            {
-                _logger.LogInformation("📝 Register attempt - Username: {Username}, Cedula: {Cedula}, Role: {Role}", 
-                    registerDto.NombreUsuario, registerDto.Cedula, rol);
-
-                // Verificar si ya existe un usuario con esa cédula
-                var usuarioExistente = await _context.Usuarios
-                    .FirstOrDefaultAsync(u => u.Cedula == registerDto.Cedula);
-
-                if (usuarioExistente != null)
-                {
-                    _logger.LogWarning("⚠️ User already exists with Cedula: {Cedula}", registerDto.Cedula);
-                    return null;
-                }
-
-                // Verificar que el local existe
-                var localExists = await _context.Locales.AnyAsync(l => l.Id == registerDto.IdLocal);
-                if (!localExists)
-                {
-                    _logger.LogWarning("⚠️ Local not found with Id: {IdLocal}", registerDto.IdLocal);
-                    throw new Exception("El local asignado no existe.");
-                }
-
-                // Encriptar contraseña
-                var passwordEncriptada = _utils.encriptarSHA256(registerDto.Contrasena);
-                _logger.LogInformation("🔑 Password encrypted for new user");
-
-                var nuevoUsuario = new Usuario
-                {
-                    NombreUsuario = registerDto.NombreUsuario,
-                    Contrasena = passwordEncriptada,
-                    Cedula = registerDto.Cedula,
-                    Rol = rol,
-                    IdLocal = registerDto.IdLocal
-                };
-
-                _context.Usuarios.Add(nuevoUsuario);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation("✅ User registered successfully: {Username}", nuevoUsuario.NombreUsuario);
-                return nuevoUsuario;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "💥 Error during registration");
-                throw;
-            }
-        }
     }
 }
