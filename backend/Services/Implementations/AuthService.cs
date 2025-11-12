@@ -64,7 +64,14 @@ namespace backend.Services.Implementations
                 Console.WriteLine($"🔄 Redirecting login to: {loginUrl}");
                 Console.WriteLine($"📤 Login data - Cedula: {login.Cedula}");
 
-                var jsonContent = JsonSerializer.Serialize(login);
+                // ✅ ADAPTACIÓN: Mapear cedula a username para el servicio Java
+                var loginRequest = new
+                {
+                    username = login.Cedula,  // Java espera "username"
+                    password = login.Contrasena
+                };
+
+                var jsonContent = JsonSerializer.Serialize(loginRequest);
                 Console.WriteLine($"📦 JSON Request: {jsonContent}");
                 
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
@@ -83,15 +90,15 @@ namespace backend.Services.Implementations
 
                 var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                // Extraer el token de la respuesta
-                if (jsonResponse.TryGetProperty("token", out var tokenElement))
+                // ✅ El servicio Java retorna "accessToken" no "token"
+                if (jsonResponse.TryGetProperty("accessToken", out var tokenElement))
                 {
                     var token = tokenElement.GetString();
                     Console.WriteLine($"✅ Login successful - Token received");
                     return token;
                 }
 
-                Console.WriteLine($"⚠️ No token found in response");
+                Console.WriteLine($"⚠️ No accessToken found in response");
                 return null;
             }
             catch (Exception ex)
