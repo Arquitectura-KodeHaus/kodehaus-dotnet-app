@@ -115,7 +115,7 @@ export class AuthService {
       const decodedPayload = JSON.parse(atob(payload));
       
       // ✅ Adaptado para el token del servicio Java
-      const idLocal = 1;
+      const idLocal = "1";
       const username = decodedPayload.sub || decodedPayload.username;
       
       // Extraer roles del token Java (puede venir como array)
