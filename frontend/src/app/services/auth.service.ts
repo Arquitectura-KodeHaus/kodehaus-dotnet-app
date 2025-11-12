@@ -115,7 +115,7 @@ export class AuthService {
       const decodedPayload = JSON.parse(atob(payload));
       
       // ✅ Adaptado para el token del servicio Java
-      const idLocal = decodedPayload.plazaId || decodedPayload.IdLocal || decodedPayload.idLocal;
+      const idLocal = 1;
       const username = decodedPayload.sub || decodedPayload.username;
       
       // Extraer roles del token Java (puede venir como array)
@@ -129,7 +129,7 @@ export class AuthService {
       const userInfo: UserInfo = {
         cedula: username || decodedPayload.Cedula || decodedPayload.cedula,
         rol: rol,
-        idLocal: idLocal ? parseInt(idLocal.toString(), 10) : undefined
+        idLocal: idLocal ? parseInt(idLocal, 10) : undefined
       };
       
       localStorage.setItem(this.userInfoKey, JSON.stringify(userInfo));
