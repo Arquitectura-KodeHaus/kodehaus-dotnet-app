@@ -20,28 +20,96 @@ namespace backend.Services.Implementations
             _logger = logger;
         }
 
-        public async Task<Usuario> CreateAsync(RegisterDTO usuario, string rol)
+        public async Task<Usuario?> Login(LoginDTO loginDto)
         {
-            var exists = await _context.Usuarios.AnyAsync(u => u.Cedula == usuario.Cedula);
-            if (exists)
+            try
             {
-                throw new Exception("Ya existe un usuario con esa cédula.");
-            }
+                _logger.LogInformation("🔐 Login attempt for Cedula: {Cedula}", loginDto.Cedula);
+                
+                // Encriptar la contraseña recibida
+                var passwordEncriptada = _utils.encriptarSHA256(loginDto.Contrasena);
+                _logger.LogInformation("🔑 Password hash generated: {Hash}", passwordEncriptada?.Substring(0, 20) + "...");
 
-            var localExists = await _context.Locales.AnyAsync(l => l.Id == usuario.IdLocal);
-            if (!localExists)
-            {
-                throw new Exception("El local asignado no existe.");
-            }
+                // Buscar usuario por cédula
+                var usuario = await _context.Usuarios
+                    .Include(u => u.Local)
+                    .FirstOrDefaultAsync(u => u.Cedula == loginDto.Cedula);
 
-            var newUser = new Usuario
+                if (usuario == null)
+                {
+                    _logger.LogWarning("❌ User not found for Cedula: {Cedula}", loginDto.Cedula);
+                    return null;
+                }
+
+                _logger.LogInformation("👤 User found: {Username}, Role: {Role}", usuario.NombreUsuario, usuario.Rol);
+                _logger.LogInformation("🔑 Stored hash: {Hash}", usuario.Contrasena?.Substring(0, 20) + "...");
+
+                // Comparar contraseñas
+                if (usuario.Contrasena == passwordEncriptada)
+                {
+                    _logger.LogInformation("✅ Login successful for user: {Username}", usuario.NombreUsuario);
+                    return usuario;
+                }
+                else
+                {
+                    _logger.LogWarning("❌ Password mismatch for user: {Username}", usuario.NombreUsuario);
+                    return null;
+                }
+            }
+            catch (Exception ex)
             {
-                NombreUsuario = usuario.NombreUsuario,
-                Contrasena = _utils.encryptPassword(usuario.Contrasena),
-                Cedula = usuario.Cedula,
-                Rol = rol,
-                IdLocal = usuario.IdLocal
-            };
+                _logger.LogError(ex, "💥 Error during login for Cedula: {Cedula}", loginDto.Cedula);
+                throw;
+            }
+        }
+
+        public async Task<Usuario?> RegisterAdmin(RegisterDTO registerDto)
+        {
+            return await Register(registerDto, "Admin");
+        }
+
+        public async Task<Usuario?> RegisterUser(RegisterDTO registerDto)
+        {
+            return await Register(registerDto, "User");
+        }
+
+        private async Task<Usuario?> Register(RegisterDTO registerDto, string rol)
+        {
+            try
+            {
+                _logger.LogInformation("📝 Register attempt - Username: {Username}, Cedula: {Cedula}, Role: {Role}", 
+                    registerDto.NombreUsuario, registerDto.Cedula, rol);
+
+                // Verificar si ya existe un usuario con esa cédula
+                var usuarioExistente = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.Cedula == registerDto.Cedula);
+
+                if (usuarioExistente != null)
+                {
+                    _logger.LogWarning("⚠️ User already exists with Cedula: {Cedula}", registerDto.Cedula);
+                    return null;
+                }
+
+                // Verificar que el local existe
+                var localExists = await _context.Locales.AnyAsync(l => l.Id == registerDto.IdLocal);
+                if (!localExists)
+                {
+                    _logger.LogWarning("⚠️ Local not found with Id: {IdLocal}", registerDto.IdLocal);
+                    throw new Exception("El local asignado no existe.");
+                }
+
+                // Encriptar contraseña
+                var passwordEncriptada = _utils.encriptarSHA256(registerDto.Contrasena);
+                _logger.LogInformation("🔑 Password encrypted for new user");
+
+                var nuevoUsuario = new Usuario
+                {
+                    NombreUsuario = registerDto.NombreUsuario,
+                    Contrasena = passwordEncriptada,
+                    Cedula = registerDto.Cedula,
+                    Rol = rol,
+                    IdLocal = registerDto.IdLocal
+                };
 
                 _context.Usuarios.Add(nuevoUsuario);
                 await _context.SaveChangesAsync();
