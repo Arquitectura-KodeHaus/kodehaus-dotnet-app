@@ -82,7 +82,7 @@ jobs:
             --timeout 300 \
             --set-env-vars "ASPNETCORE_ENVIRONMENT=Production,ASPNETCORE_URLS=http://+:8080" \
             --set-cloudsql-instances "${{ secrets.CLOUD_SQL_INSTANCE }}" \
-            --set-env-vars "ConnectionStrings__DefaultConnection=${{ secrets.DATABASE_URL }}" \
+            --set-secrets "ConnectionStrings__DefaultConnection=DB_URL_DOTNET:latest" \
             --labels "app=kodehaus-backend,env=production,tier=backend"
 
       - name: Verify deployment
