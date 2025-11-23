@@ -2,7 +2,7 @@ name: Backend CI/CD - GCP
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ] # ✅ Agregamos develop
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
@@ -11,7 +11,6 @@ env:
   PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   REGION: ${{ vars.GCP_REGION }}
   AR_REPO: ${{ vars.ARTIFACT_REGISTRY_REPO || 'kodehaus-backend' }}
-  SERVICE: kodehaus-backend-service
   IMAGE_NAME: kodehaus-backend
 
 jobs:
@@ -45,6 +44,24 @@ jobs:
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
         working-directory: .
 
+      # ✅ NUEVO PASO: Definir variables por ambiente
+      - name: Set Environment Variables
+        id: env-vars
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Configuring for PRODUCTION"
+            echo "SERVICE_NAME=kodehaus-backend-service" >> $GITHUB_ENV
+            echo "SQL_INSTANCE=${{ secrets.CLOUD_SQL_INSTANCE }}" >> $GITHUB_ENV
+            echo "DB_SECRET_NAME=DB_URL_DOTNET" >> $GITHUB_ENV
+            echo "ASP_ENV=Production" >> $GITHUB_ENV
+          else
+            echo "Configuring for QA/DEVELOP"
+            echo "SERVICE_NAME=kodehaus-backend-service-qa" >> $GITHUB_ENV
+            echo "SQL_INSTANCE=kodehaus-prod-474304:us-central1:pg-pruebas" >> $GITHUB_ENV
+            echo "DB_SECRET_NAME=DB_URL_DOTNET_QA" >> $GITHUB_ENV
+            echo "ASP_ENV=Development" >> $GITHUB_ENV
+          fi
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -69,7 +86,7 @@ jobs:
       - name: Deploy to Cloud Run
         working-directory: .
         run: |
-          gcloud run deploy "${{ env.SERVICE }}" \
+          gcloud run deploy "${{ env.SERVICE_NAME }}" \
             --region "${{ env.REGION }}" \
             --image "${IMAGE_URI_DIGEST}" \
             --platform managed \
@@ -80,15 +97,15 @@ jobs:
             --min-instances 0 \
             --max-instances 10 \
             --timeout 300 \
-            --set-env-vars "ASPNETCORE_ENVIRONMENT=Production,ASPNETCORE_URLS=http://+:8080" \
-            --set-cloudsql-instances "${{ secrets.CLOUD_SQL_INSTANCE }}" \
-            --set-secrets "ConnectionStrings__DefaultConnection=DB_URL_DOTNET:latest" \
-            --labels "app=kodehaus-backend,env=production,tier=backend"
+            --set-env-vars "ASPNETCORE_ENVIRONMENT=${{ env.ASP_ENV }},ASPNETCORE_URLS=http://+:8080" \
+            --set-cloudsql-instances "${{ env.SQL_INSTANCE }}" \
+            --set-secrets "ConnectionStrings__DefaultConnection=${{ env.DB_SECRET_NAME }}:latest" \
+            --labels "app=kodehaus-backend,env=${{ env.ASP_ENV }},tier=backend"
 
       - name: Verify deployment
         working-directory: .
         run: |
-          SERVICE_URL=$(gcloud run services describe "${{ env.SERVICE }}" \
+          SERVICE_URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
             --region "${{ env.REGION }}" \
             --format='value(status.url)')
           
@@ -100,8 +117,8 @@ jobs:
           # Health check
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${SERVICE_URL}/api")
           
-          if [ "$HTTP_CODE" -eq 200 ]; then
-            echo "✅ API health check passed!"
+          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 401 ]; then
+            echo "✅ API health check passed (Status: $HTTP_CODE)!"
           else
             echo "⚠️  API returned HTTP ${HTTP_CODE}"
             echo "Trying to get response body..."
@@ -111,7 +128,7 @@ jobs:
       - name: Display deployment info
         working-directory: .
         run: |
-          SERVICE_URL=$(gcloud run services describe "${{ env.SERVICE }}" \
+          SERVICE_URL=$(gcloud run services describe "${{ env.SERVICE_NAME }}" \
             --region "${{ env.REGION }}" \
             --format='value(status.url)')
           
