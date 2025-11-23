@@ -44,7 +44,6 @@ jobs:
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
         working-directory: .
 
-      # ✅ NUEVO PASO: Definir variables por ambiente
       - name: Set Environment Variables
         id: env-vars
         run: |
@@ -54,12 +53,14 @@ jobs:
             echo "SQL_INSTANCE=${{ secrets.CLOUD_SQL_INSTANCE }}" >> $GITHUB_ENV
             echo "DB_SECRET_NAME=DB_URL_DOTNET" >> $GITHUB_ENV
             echo "ASP_ENV=Production" >> $GITHUB_ENV
+            echo "ENV_LABEL=production" >> $GITHUB_ENV
           else
             echo "Configuring for QA/DEVELOP"
             echo "SERVICE_NAME=kodehaus-backend-service-qa" >> $GITHUB_ENV
             echo "SQL_INSTANCE=kodehaus-prod-474304:us-central1:pg-pruebas" >> $GITHUB_ENV
             echo "DB_SECRET_NAME=DB_URL_DOTNET_QA" >> $GITHUB_ENV
             echo "ASP_ENV=Development" >> $GITHUB_ENV
+            echo "ENV_LABEL=development" >> $GITHUB_ENV
           fi
 
       - name: Restore dependencies
@@ -100,7 +101,7 @@ jobs:
             --set-env-vars "ASPNETCORE_ENVIRONMENT=${{ env.ASP_ENV }},ASPNETCORE_URLS=http://+:8080" \
             --set-cloudsql-instances "${{ env.SQL_INSTANCE }}" \
             --set-secrets "ConnectionStrings__DefaultConnection=${{ env.DB_SECRET_NAME }}:latest" \
-            --labels "app=kodehaus-backend,env=${{ env.ASP_ENV }},tier=backend"
+            --labels "app=kodehaus-backend,env=${{ env.ENV_LABEL }},tier=backend"
 
       - name: Verify deployment
         working-directory: .
