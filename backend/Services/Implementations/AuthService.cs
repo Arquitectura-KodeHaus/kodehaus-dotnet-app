@@ -29,7 +29,7 @@ namespace backend.Services.Implementations
             var exists = await _context.Usuarios.AnyAsync(u => u.Cedula == usuario.Cedula);
             if (exists)
             {
-                throw new Exception("Ya existe un usuario con esa cédula.");
+                throw new Exception("Ya existe un usuario con ese nombre de usuario.");
             }
 
             var localExists = await _context.Locales.AnyAsync(l => l.Id == usuario.IdLocal);
@@ -56,57 +56,17 @@ namespace backend.Services.Implementations
 
         public async Task<string?> LoginAsync(LoginDTO login)
         {
-            try
-            {
-                var gestionPlazasUrl = _configuration["ServiceUrls:GestionPlazasUrl"];
-                var loginUrl = $"{gestionPlazasUrl}/api/auth/login";
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u =>
+                u.NombreUsuario == login.Cedula &&
+                u.Contrasena == _utils.encryptPassword(login.Contrasena));
 
-                Console.WriteLine($"🔄 Redirecting login to: {loginUrl}");
-                Console.WriteLine($"📤 Login data - Cedula: {login.Cedula}");
-
-                // ✅ ADAPTACIÓN: Mapear cedula a username para el servicio Java
-                var loginRequest = new
-                {
-                    username = login.Cedula,  // Java espera "username"
-                    password = login.Contrasena
-                };
-
-                var jsonContent = JsonSerializer.Serialize(loginRequest);
-                Console.WriteLine($"📦 JSON Request: {jsonContent}");
-                
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync(loginUrl, content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"📥 Response Status: {response.StatusCode}");
-                Console.WriteLine($"📥 Response Content: {responseContent}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"❌ Login failed - Status: {response.StatusCode}, Response: {responseContent}");
-                    return null;
-                }
-
-                var jsonResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                // ✅ El servicio Java retorna "accessToken" no "token"
-                if (jsonResponse.TryGetProperty("accessToken", out var tokenElement))
-                {
-                    var token = tokenElement.GetString();
-                    Console.WriteLine($"✅ Login successful - Token received");
-                    return token;
-                }
-
-                Console.WriteLine($"⚠️ No accessToken found in response");
+            if (user == null)
                 return null;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"💥 Exception during login: {ex.Message}");
-                Console.WriteLine($"💥 StackTrace: {ex.StackTrace}");
-                return null;
-            }
+
+            // Generar el JWT usando Utils
+            var token = _utils.generateJwtSecret(user);
+
+            return token;
         }
 
     }

@@ -43,16 +43,14 @@ builder.Services.AddAuthentication(config =>
 {
     config.RequireHttpsMetadata = false;
     config.SaveToken = true;
-    // ✅ SOLUCIÓN SIMPLE: Deshabilitar validación del token (acepta cualquier JWT)
     config.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuerSigningKey = false,  // No validar firma
+        ValidateIssuerSigningKey = true,
         ValidateIssuer = false,
         ValidateAudience = false,
-        ValidateLifetime = false,  // No validar expiración
-        RequireExpirationTime = false,
-        RequireSignedTokens = false,  // Aceptar tokens sin firma
-        SignatureValidator = (token, parameters) => new System.IdentityModel.Tokens.Jwt.JwtSecurityToken(token)  // Aceptar cualquier token
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
     };
 });
 

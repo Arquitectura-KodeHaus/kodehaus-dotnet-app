@@ -7,7 +7,7 @@ using Npgsql;
 
 namespace backend.Controllers
 {
-    // [Authorize(Roles = "Admin,User")]  // ✅ TEMPORAL: Deshabilitado para aceptar tokens de Java
+    [Authorize(Roles = "Admin,User")] 
     [Route("api/[controller]")]
     [ApiController]
     public class InventariosController : ControllerBase
