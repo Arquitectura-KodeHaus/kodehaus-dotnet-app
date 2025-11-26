@@ -54,7 +54,7 @@ namespace backend.Controllers
             try
             {
                 var rol = "User";
-                var user = await _authService.CreateAsync(model, rol);
+                var user = await _authService.CreateAsyncInter(model, rol);
                 return Ok(new
                 {
                     message = "Usuario creado correctamente.",

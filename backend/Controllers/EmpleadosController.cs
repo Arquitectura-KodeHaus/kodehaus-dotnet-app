@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
 {
-    // [Authorize(Roles = "Admin")]  // ✅ TEMPORAL: Deshabilitado para aceptar tokens de Java
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class EmpleadosController : ControllerBase

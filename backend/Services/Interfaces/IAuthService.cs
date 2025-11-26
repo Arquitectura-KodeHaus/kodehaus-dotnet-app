@@ -7,5 +7,6 @@ namespace backend.Services.Interfaces
     {
         Task<Usuario> CreateAsync(RegisterDTO usuario, String rol);
         Task<string?> LoginAsync(LoginDTO login);
+        Task<Usuario> CreateAsyncInter(RegisterDTO usuario, string rol);
     }
 }

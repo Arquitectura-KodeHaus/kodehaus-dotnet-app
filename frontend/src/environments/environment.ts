@@ -3,5 +3,5 @@
 // El backend por defecto usa el puerto 8080 según Program.cs
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/api'
+  apiUrl: 'http://localhost:8090/api'
 };

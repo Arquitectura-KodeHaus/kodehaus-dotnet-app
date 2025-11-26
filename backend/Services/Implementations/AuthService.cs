@@ -32,11 +32,11 @@ namespace backend.Services.Implementations
                 throw new Exception("Ya existe un usuario con ese nombre de usuario.");
             }
 
-            var localExists = await _context.Locales.AnyAsync(l => l.Id == usuario.IdLocal);
-            if (!localExists)
-            {
+
+            var local = await _context.Locales.FirstOrDefaultAsync(l => l.ExternalId == usuario.IdLocal);
+
+            if (local == null)
                 throw new Exception("El local asignado no existe.");
-            }
 
             var newUser = new Usuario
             {
@@ -44,7 +44,36 @@ namespace backend.Services.Implementations
                 Contrasena = _utils.encryptPassword(usuario.Contrasena),
                 Cedula = usuario.Cedula,
                 Rol = rol,
-                IdLocal = usuario.IdLocal
+                IdLocal = local.Id
+            };
+
+            _context.Usuarios.Add(newUser);
+            await _context.SaveChangesAsync();
+
+            return newUser;
+        }
+
+        public async Task<Usuario> CreateAsyncInter(RegisterDTO usuario, string rol)
+        {
+            var exists = await _context.Usuarios.AnyAsync(u => u.Cedula == usuario.Cedula);
+            if (exists)
+            {
+                throw new Exception("Ya existe un usuario con ese nombre de usuario.");
+            }
+
+
+            var local = await _context.Locales.FirstOrDefaultAsync(l => l.Id == usuario.IdLocal);
+
+            if (local == null)
+                throw new Exception("El local asignado no existe.");
+
+            var newUser = new Usuario
+            {
+                NombreUsuario = usuario.NombreUsuario,
+                Contrasena = _utils.encryptPassword(usuario.Contrasena),
+                Cedula = usuario.Cedula,
+                Rol = rol,
+                IdLocal = local.Id
             };
 
             _context.Usuarios.Add(newUser);
