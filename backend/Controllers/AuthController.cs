@@ -54,7 +54,7 @@ namespace backend.Controllers
             try
             {
                 var rol = "User";
-                var user = await _authService.CreateAsync(model, rol);
+                var user = await _authService.CreateAsyncInter(model, rol);
                 return Ok(new
                 {
                     message = "Usuario creado correctamente.",
@@ -79,30 +79,11 @@ namespace backend.Controllers
         {
             try
             {
-                Console.WriteLine($"🎯 AuthController - Login request received");
-                Console.WriteLine($"📋 Model - Cedula: {model?.Cedula}, Contrasena length: {model?.Contrasena?.Length}");
-                
-                if (model == null)
-                {
-                    Console.WriteLine("❌ Model is null");
-                    return BadRequest(new { message = "Datos de login inválidos." });
-                }
-
-                if (string.IsNullOrEmpty(model.Cedula) || string.IsNullOrEmpty(model.Contrasena))
-                {
-                    Console.WriteLine("❌ Cedula or Contrasena is empty");
-                    return BadRequest(new { message = "Cédula y contraseña son requeridos." });
-                }
-
                 var token = await _authService.LoginAsync(model);
 
                 if (token == null)
-                {
-                    Console.WriteLine("❌ Token is null - Login failed");
-                    return Unauthorized(new { message = "Cédula o contraseña incorrecta." });
-                }
+                    return Unauthorized(new { message = "Usuario o contraseña incorrecta." });
 
-                Console.WriteLine("✅ Login successful in controller");
                 return Ok(new
                 {
                     message = "Inicio de sesión exitoso.",
@@ -111,8 +92,6 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"💥 Exception in AuthController: {ex.Message}");
-                Console.WriteLine($"💥 StackTrace: {ex.StackTrace}");
                 return BadRequest(new { message = ex.Message });
             }
         }

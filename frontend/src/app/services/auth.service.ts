@@ -10,7 +10,7 @@ import { LoginRequest, RegisterRequest, LoginResponse, RegisterResponse, UserInf
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'https://backend-service-java-2-616328447495.us-central1.run.app/api';
+  private baseUrl = environment.apiUrl;
   private tokenKey = 'auth_token';
   private userInfoKey = 'user_info';
   
@@ -35,18 +35,15 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    // ✅ ADAPTADO: El servicio Java espera username y password
-    const backendData = {
-      username: credentials.cedula,  // Enviar cedula como username
-      password: credentials.contrasena  // Enviar sin ñ
+    // Mapear contrasena a Contraseña para el backend (usando notación de corchetes para caracteres especiales)
+    const backendData: any = {
+      cedula: credentials.cedula
     };
-    
+    backendData['contrasena'] = credentials.contrasena; // Usar notación de corchetes para la ñ
     return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, backendData).pipe(
       tap(response => {
-        // El servicio Java retorna accessToken en lugar de token
-        const token = (response as any).accessToken || response.token;
-        this.setToken(token);
-        this.decodeAndStoreUserInfo(token);
+        this.setToken(response.token);
+        this.decodeAndStoreUserInfo(response.token);
       })
     );
   }
@@ -58,7 +55,7 @@ export class AuthService {
       cedula: userData.cedula,
       idLocal: userData.idLocal
     };
-    backendData['contraseña'] = userData.contrasena; // Usar notación de corchetes para la ñ
+    backendData['contrasena'] = userData.contrasena; // Usar notación de corchetes para la ñ
     return this.http.post<RegisterResponse>(`${this.baseUrl}/auth/register/user`, backendData);
   }
 
@@ -79,12 +76,12 @@ export class AuthService {
 
   isAdmin(): boolean {
     const userInfo = this.getUserInfo();
-    return userInfo?.rol === 'Admin' || userInfo?.rol === 'MANAGER';  // ✅ Agregar MANAGER
+    return userInfo?.rol === 'Admin';
   }
 
   isUser(): boolean {
     const userInfo = this.getUserInfo();
-    return userInfo?.rol === 'User' || userInfo?.rol === 'EMPLOYEE';  // ✅ Agregar EMPLOYEE
+    return userInfo?.rol === 'User';
   }
 
   getCurrentUser(): UserInfo | null {
@@ -114,21 +111,14 @@ export class AuthService {
       const payload = token.split('.')[1];
       const decodedPayload = JSON.parse(atob(payload));
       
-      // ✅ Adaptado para el token del servicio Java
-      const idLocal = "1";
-      const username = decodedPayload.sub || decodedPayload.username;
-      
-      // Extraer roles del token Java (puede venir como array)
-      let rol = 'User';
-      if (decodedPayload.roles && Array.isArray(decodedPayload.roles)) {
-        rol = decodedPayload.roles[0]; // Tomar el primer rol
-      } else if (decodedPayload.role) {
-        rol = decodedPayload.role;
-      }
+      const idLocal = decodedPayload.IdLocal || decodedPayload.idLocal;
       
       const userInfo: UserInfo = {
-        cedula: username || decodedPayload.Cedula || decodedPayload.cedula,
-        rol: rol,
+        cedula: decodedPayload.Cedula || decodedPayload.cedula,
+        rol: decodedPayload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || 
+             decodedPayload.role || 
+             decodedPayload.Rol || 
+             decodedPayload.rol,
         idLocal: idLocal ? parseInt(idLocal, 10) : undefined
       };
       
@@ -139,4 +129,3 @@ export class AuthService {
     }
   }
 }
-
